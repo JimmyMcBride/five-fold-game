@@ -210,11 +210,15 @@ test('multi-enemy targeting and Tomb Record scrolling preserve player intent', a
 	await expect(farTarget).not.toBeChecked();
 	await expect(page.getByRole('radio', { name: 'Target Distant Cantor' })).toBeDisabled();
 	await expect(page.getByRole('radio', { name: 'Target Veiled Saint' })).toBeDisabled();
-	await expect(page.getByText('Out of range', { exact: true })).toBeVisible();
+	await expect(page.getByText('Unavailable', { exact: true })).toBeVisible();
 	await expect(page.getByText('Guarded', { exact: true })).toBeVisible();
 	await expect(page.getByRole('progressbar', { name: 'Ash Warden health' })).toHaveAttribute(
 		'aria-valuenow',
 		'18'
+	);
+	await expect(page.getByRole('progressbar', { name: 'Ash Warden health' })).toHaveAttribute(
+		'aria-valuetext',
+		'18 / 44 HP'
 	);
 	await expect(page.getByText('18 / 44 HP', { exact: true })).toBeVisible();
 	await expect(page.getByRole('button', { name: /^Attack Grave Hound/ })).toBeVisible();
@@ -231,6 +235,7 @@ test('multi-enemy targeting and Tomb Record scrolling preserve player intent', a
 	await expect.poll(() => submittedTargetId).toBe('enemy-far');
 	await expect(farTarget).toBeDisabled();
 	await expect(selectedAttack).toBeDisabled();
+	await expect(farTarget.locator('xpath=ancestor::label')).toHaveClass(/target-unavailable/);
 	releaseAttack();
 	await expect(farTarget).toBeChecked();
 

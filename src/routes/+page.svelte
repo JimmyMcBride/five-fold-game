@@ -422,6 +422,7 @@
 						aria-valuenow={playerHealth.now}
 						aria-valuemin="0"
 						aria-valuemax={playerHealth.max}
+						aria-valuetext={`${projection.player.hp} / ${projection.player.maxHp} HP`}
 					>
 						<span style={`width: ${playerHealth.percent}%`}></span>
 					</div>
@@ -496,14 +497,12 @@
 							{@const enemyHealth = healthProgress(enemy.hp, enemy.maxHp)}
 							{@const unavailableLabel = enemy.guarded
 								? 'Guarded'
-								: !targetEligible && eligibleTargetIds.length > 0
-									? 'Out of range'
-									: !targetEligible
-										? 'Unavailable'
-										: null}
+								: !targetEligible
+									? 'Unavailable'
+									: null}
 							<label
 								class:target-selected={selected}
-								class:target-unavailable={!targetEligible}
+								class:target-unavailable={pending || !targetEligible}
 								class="encounter"
 							>
 								<input
@@ -539,6 +538,7 @@
 											aria-valuenow={enemyHealth.now}
 											aria-valuemin="0"
 											aria-valuemax={enemyHealth.max}
+											aria-valuetext={`${enemy.hp} / ${enemy.maxHp} HP`}
 										>
 											<span style={`width: ${enemyHealth.percent}%`}></span>
 										</span>

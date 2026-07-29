@@ -1,8 +1,8 @@
 ---
-status: implementing
+status: done
 title: Combat readability and target selection
 type: spec
-updated_at: '2026-07-29T20:58:34Z'
+updated_at: '2026-07-29T21:21:52Z'
 ---
 
 ## Spec
