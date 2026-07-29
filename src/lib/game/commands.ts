@@ -1,7 +1,20 @@
-import type { Direction } from './state';
+import type { DefenseStat } from './model';
 
 export type GameCommand =
-	| { type: 'move'; direction: Direction }
-	| { type: 'attack' }
-	| { type: 'brace' }
-	| { type: 'inspect' };
+	| { type: 'move'; exitId: string }
+	| { type: 'inspect' }
+	| { type: 'attack'; targetId: string }
+	| { type: 'use-feature'; featureId: string; targetId?: string }
+	| { type: 'shift-rank' }
+	| { type: 'set-defense'; stat: DefenseStat }
+	| { type: 'patch-up' }
+	| { type: 'choose'; optionId: string }
+	| { type: 'end-turn' };
+
+export interface LegalCommand {
+	id: string;
+	label: string;
+	detail: string;
+	command: GameCommand;
+	economy?: 'action' | 'ability' | 'maneuver';
+}

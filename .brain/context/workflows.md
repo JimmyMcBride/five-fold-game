@@ -1,5 +1,5 @@
 ---
-updated: '2026-07-29T05:41:32Z'
+updated: '2026-07-29T08:06:48Z'
 ---
 
 # Workflows
@@ -33,6 +33,9 @@ Run through Brain:
 - `brain session run -- bun run test:unit`
 - `brain session run -- bun run build`
 - `brain session run -- bun run test:e2e` for browser-flow changes
+
+The curated `reference-100756` engine smoke must continue to reach victory with
+all five class templates and exercise each template’s signature feature.
 
 ## Closeout
 

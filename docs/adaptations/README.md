@@ -33,3 +33,8 @@ Every rules-sensitive implementation must identify one status:
 Keep a canonical rule exact when it is deterministic, solo-applicable, useful to the room/combat loop, and within the approved implementation surface. Explicitly adapt mechanics that require GM judgment, group/ally play, open-ended fictional rulings, or table pacing.
 
 Every implemented class feature, enemy ability, item, and room event must cite its canonical source or name its adaptation in the approved spec.
+
+## Implemented Adaptations
+
+- [`st-bozma-mvp.md`](./st-bozma-mvp.md) — solo rules, fixed class templates,
+  bounded progression, St. Bozma content, finale, and transactional persistence.

@@ -1,5 +1,5 @@
 ---
-updated: '2026-07-29T05:49:42Z'
+updated: '2026-07-29T07:51:01Z'
 ---
 
 # Project Overview
@@ -16,4 +16,8 @@ Fivefold is a browser-based, text-first, turn-based dungeon crawler. Players mov
 - Explicit adaptations under `docs/adaptations/`.
 - Obsidian + Bone player interface.
 
-Current bootstrap proves movement, one encounter, combat, narration events, loot, and progression. Product scope remains in the Plan brainstorm.
+The approved Issue #1 implementation is active on its linked branch. It provides
+public Discord entry, fixed five-class run creation, deterministic eight-room
+generation, solo St. Bozma combat and events, fixed XP progression, terminal run
+records, and versioned server command APIs. The PocketBase migration is reviewed
+in source but remains unapplied pending separate authorization.
