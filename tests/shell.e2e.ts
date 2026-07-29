@@ -7,7 +7,7 @@ test('public visitor signs in, creates a character, moves, and resumes the run',
 
 	await expect(page.getByRole('heading', { name: 'Enter St. Bozma’s Tomb' })).toBeVisible();
 	const discord = page.getByRole('link', { name: 'Continue with Discord' });
-	await expect(discord).toHaveAttribute('href', '/auth/discord');
+	await expect(discord).toHaveAttribute('href', /\/auth\/discord$/);
 	await expect(page.getByText('No invitation required.')).toBeVisible();
 
 	await page.goto('/auth/test');

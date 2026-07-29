@@ -86,6 +86,16 @@ describe('resolveCommand', () => {
 		expect(result.events[0].kind).toBe('command-rejected');
 	});
 
+	it('accepts a legal command regardless of object property insertion order', () => {
+		const initial = createInitialState({ seed: 'property-order', className: 'Warrior' });
+		const move = commandOfType(initial, 'move');
+		const reorderedMove = { exitId: move.exitId, type: 'move' } satisfies GameCommand;
+		const result = resolveCommand(initial, reorderedMove, sequenceRng(10, 1));
+
+		expect(result.events[0].kind).toBe('room-entered');
+		expect(result.state.roomId).not.toBe(initial.roomId);
+	});
+
 	it('awards fixed XP and performs deterministic advancement after two normal victories', () => {
 		let state = createInitialState({ seed: 'two-victories', className: 'Warrior' });
 		state = resolveCommand(state, commandOfType(state, 'move'), sequenceRng(10, 1)).state;

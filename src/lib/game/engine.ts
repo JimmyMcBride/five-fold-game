@@ -245,7 +245,23 @@ export function getLegalCommands(state: GameState): LegalCommand[] {
 }
 
 function commandKey(command: GameCommand): string {
-	return JSON.stringify(command);
+	switch (command.type) {
+		case 'move':
+			return JSON.stringify([command.type, command.exitId]);
+		case 'inspect':
+		case 'shift-rank':
+		case 'patch-up':
+		case 'end-turn':
+			return command.type;
+		case 'attack':
+			return JSON.stringify([command.type, command.targetId]);
+		case 'use-feature':
+			return JSON.stringify([command.type, command.featureId, command.targetId ?? null]);
+		case 'set-defense':
+			return JSON.stringify([command.type, command.stat]);
+		case 'choose':
+			return JSON.stringify([command.type, command.optionId]);
+	}
 }
 
 function allowedDefenses(state: GameState): DefenseStat[] {

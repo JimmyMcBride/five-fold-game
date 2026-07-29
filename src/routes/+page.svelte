@@ -84,7 +84,7 @@
 			if (response.status === 422 && body.projection) {
 				projection = body.projection;
 				log = [...log, ...(body.projection.events ?? [])];
-				errorMessage = 'That command is no longer legal. Nothing advanced.';
+				errorMessage = 'That command was rejected. Nothing advanced.';
 				return;
 			}
 			if (!response.ok && response.status !== 409) {
