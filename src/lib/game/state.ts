@@ -3,6 +3,7 @@ import { generateDungeon } from './content/dungeon';
 import { createRng, type RandomSource } from './rng';
 import type {
 	ClassName,
+	CombatTurnState,
 	GameState,
 	PlayerEffects,
 	PlayerState,
@@ -40,12 +41,16 @@ export function decodeGameState(value: unknown): GameState {
 	if (!player || !Array.isArray(player.healthRolls)) {
 		throw new Error('Invalid v2 snapshot: health rolls are missing.');
 	}
-	if (candidate.encounter) {
-		const turn = candidate.encounter.turn;
+	if (candidate.encounter !== null && candidate.encounter !== undefined) {
+		if (typeof candidate.encounter !== 'object') {
+			throw new Error('Invalid v2 snapshot: AP state is missing.');
+		}
+		const turn = candidate.encounter.turn as Partial<CombatTurnState> | undefined;
 		if (
+			!turn ||
 			!Number.isInteger(turn.actionPoints) ||
 			!Array.isArray(turn.usedActionIds) ||
-			!turn.usedActionIds.every((id) => typeof id === 'string')
+			!turn.usedActionIds.every((id: unknown) => typeof id === 'string')
 		) {
 			throw new Error('Invalid v2 snapshot: AP state is missing.');
 		}

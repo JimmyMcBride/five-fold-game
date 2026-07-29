@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { classifyRoll, rollStat } from './rules';
+import { classifyRoll, isNaturalOne, rollStat } from './rules';
 import type { RandomSource } from './rng';
 
 function fixed(...values: number[]): RandomSource {
@@ -23,6 +23,11 @@ describe('Fivefold roll bands', () => {
 	it('uses the lower roll for advantage and the higher roll for disadvantage', () => {
 		expect(rollStat(fixed(82, 12), 'heart', 70, { advantage: true }).kept).toBe(12);
 		expect(rollStat(fixed(12, 82), 'heart', 70, { disadvantage: true }).kept).toBe(82);
+	});
+
+	it('only treats a kept natural 1 as a natural 1', () => {
+		expect(isNaturalOne(rollStat(fixed(1, 82), 'heart', 70, { advantage: true }))).toBe(true);
+		expect(isNaturalOne(rollStat(fixed(1, 82), 'heart', 70, { disadvantage: true }))).toBe(false);
 	});
 
 	it('requires the requested success band', () => {

@@ -103,6 +103,9 @@ describe('Fivefold v0.8.5 v2', () => {
 		expect(decodeGameState(legacy)).toBe(legacy);
 		expect(decodeGameState(current)).toBe(current);
 		expect(() => decodeGameState(incomplete)).toThrow('health rolls are missing');
+		expect(() => decodeGameState({ ...current, encounter: {} })).toThrow(
+			'Invalid v2 snapshot: AP state is missing.'
+		);
 		expect(() => decodeGameState({ ...legacy, contentVersion: 'future-version' })).toThrow(
 			'Unsupported content version'
 		);
@@ -140,6 +143,19 @@ describe('Fivefold v0.8.5 v2', () => {
 		expect(rejectedRng.snapshot?.().cursor).toBe(0);
 
 		state = resolveCommand(state, command(state, 'shift-rank'), sequenceRng()).state;
+		expect(state.encounter?.turn.actionPoints).toBe(0);
+		expect(state.encounter?.turn.usedActionIds).toEqual(['weapon:longsword', 'shift-rank']);
+	});
+
+	it('defaults legacy-shaped v2 attack and rank-shift commands to actions', () => {
+		let state = combatState('Warrior');
+		const targetId = state.encounter?.enemies[0].instanceId ?? '';
+
+		state = resolveCommand(state, { type: 'attack', targetId }, sequenceRng(95)).state;
+		expect(state.encounter?.turn.actionPoints).toBe(1);
+		expect(state.encounter?.turn.usedActionIds).toEqual(['weapon:longsword']);
+
+		state = resolveCommand(state, { type: 'shift-rank' }, sequenceRng()).state;
 		expect(state.encounter?.turn.actionPoints).toBe(0);
 		expect(state.encounter?.turn.usedActionIds).toEqual(['weapon:longsword', 'shift-rank']);
 	});

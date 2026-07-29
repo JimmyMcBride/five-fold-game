@@ -15,7 +15,7 @@ import type {
 	Weapon
 } from './model';
 import type { RandomSource } from './rng';
-import { modifier, rollDice, rollStat } from './rules';
+import { isNaturalOne, modifier, rollDice, rollStat } from './rules';
 import { CONTENT_VERSION, LEGACY_CONTENT_VERSION, SUPPORTED_CONTENT_VERSIONS } from './state';
 
 export interface CommandResolution {
@@ -364,6 +364,17 @@ function commandKey(command: GameCommand): string {
 	}
 }
 
+function normalizeCommand(state: GameState, command: GameCommand): GameCommand {
+	if (!isV2(state)) return command;
+	if (command.type === 'attack' && command.economy === undefined) {
+		return { ...command, economy: 'action' };
+	}
+	if (command.type === 'shift-rank' && command.economy === undefined) {
+		return { ...command, economy: 'action' };
+	}
+	return command;
+}
+
 function allowedDefenses(state: GameState): DefenseStat[] {
 	return state.player.className === 'Priest' ? ['heart', 'reflex', 'soul'] : ['heart', 'reflex'];
 }
@@ -447,10 +458,6 @@ function defensiveAdjustment(state: GameState, stat: DefenseStat): number {
 	if (stat === 'heart' && state.player.armor === 'heavy') adjustment -= 5;
 	if (state.player.weapons.some((weapon) => weapon.id === 'shield')) adjustment -= 10;
 	return adjustment;
-}
-
-function isNaturalOne(roll: RollResult): boolean {
-	return Math.min(...roll.rolls) === 1;
 }
 
 function enemyAttack(
@@ -1484,9 +1491,10 @@ function inspectText(state: GameState): string {
 
 export function resolveCommand(
 	state: GameState,
-	command: GameCommand,
+	inputCommand: GameCommand,
 	rng: RandomSource
 ): CommandResolution {
+	const command = normalizeCommand(state, inputCommand);
 	const legal = getLegalCommands(state).some(
 		(candidate) => commandKey(candidate.command) === commandKey(command)
 	);
