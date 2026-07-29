@@ -1,4 +1,6 @@
 import { describe, expect, it } from 'vitest';
+import type { LegalCommand } from '$lib/game/commands';
+import { LEGACY_CONTENT_VERSION } from '$lib/game/state';
 import { createMemoryRunRepository, RunConflictError, RunNotFoundError } from './run-repository';
 
 const newRun = {
@@ -7,6 +9,49 @@ const newRun = {
 	className: 'Scout' as const,
 	seed: 'repository'
 };
+
+function selectReferenceCommand(projection: {
+	phase: string;
+	player: { hp: number; maxHp: number };
+	commands: LegalCommand[];
+}): LegalCommand | undefined {
+	const legal = projection.commands;
+	if (projection.phase === 'exploration') {
+		return (
+			legal.find(
+				(candidate) =>
+					candidate.command.type === 'patch-up' && projection.player.hp < projection.player.maxHp
+			) ?? legal.find((candidate) => candidate.command.type === 'move')
+		);
+	}
+	if (projection.phase === 'event') {
+		return legal.find(
+			(candidate) =>
+				candidate.command.type === 'choose' && candidate.command.optionId === 'offer-mercy'
+		);
+	}
+	if (projection.phase === 'loot') {
+		return legal.find(
+			(candidate) =>
+				candidate.command.type === 'choose' &&
+				candidate.command.optionId ===
+					(projection.player.hp < projection.player.maxHp ? 'drink-potion' : 'take-sensor')
+		);
+	}
+	if (projection.phase !== 'combat') return undefined;
+	return (
+		legal.find(
+			(candidate) =>
+				candidate.command.type === 'use-feature' &&
+				['aegis-raised', 'eye-for-an-eye'].includes(candidate.command.featureId)
+		) ??
+		legal.find(
+			(candidate) => candidate.command.type === 'attack' && candidate.economy !== 'maneuver'
+		) ??
+		legal.find((candidate) => candidate.command.type === 'close-distance') ??
+		legal.find((candidate) => candidate.command.type === 'end-turn')
+	);
+}
 
 describe('run repository command contract', () => {
 	it('creates one active run and rejects a second active slot', async () => {
@@ -91,5 +136,58 @@ describe('run repository command contract', () => {
 				command: { type: 'inspect' }
 			})
 		).rejects.toBeInstanceOf(RunNotFoundError);
+	});
+
+	it('resumes and resolves a legacy v1 snapshot under its recorded version', async () => {
+		const repository = createMemoryRunRepository();
+		const created = await repository.create('owner-1', {
+			...newRun,
+			contentVersion: LEGACY_CONTENT_VERSION
+		});
+		const resumed = await repository.getActive('owner-1');
+		if (!resumed) throw new Error('Expected active run.');
+
+		expect(created.contentVersion).toBe(LEGACY_CONTENT_VERSION);
+		expect(resumed).toEqual({ ...created, events: [] });
+		const resolved = await repository.command('owner-1', {
+			runId: newRun.runId,
+			commandId: 'legacy-command-0001',
+			expectedVersion: resumed.version,
+			command: { type: 'inspect' }
+		});
+		expect(resolved.kind).toBe('accepted');
+		expect(resolved.projection.contentVersion).toBe(LEGACY_CONTENT_VERSION);
+	});
+
+	it('archives exactly one immutable summary when a v2 run terminates', async () => {
+		const repository = createMemoryRunRepository();
+		let projection = await repository.create('owner-1', {
+			...newRun,
+			className: 'Warrior',
+			seed: 'v2-Warrior-3'
+		});
+		let terminalEnvelope;
+
+		for (let index = 0; index < 240 && projection.status === 'active'; index += 1) {
+			const selected = selectReferenceCommand(projection);
+			if (!selected) throw new Error(`No command for ${projection.phase}.`);
+			terminalEnvelope = {
+				runId: newRun.runId,
+				commandId: `terminal-command-${String(index).padStart(4, '0')}`,
+				expectedVersion: projection.version,
+				command: selected.command
+			};
+			const result = await repository.command('owner-1', terminalEnvelope);
+			if (result.kind !== 'accepted') throw new Error(`Unexpected ${result.kind}.`);
+			projection = result.projection;
+		}
+
+		expect(projection.status).toBe('victory');
+		expect(await repository.getActive('owner-1')).toBeNull();
+		expect(await repository.history('owner-1')).toHaveLength(1);
+		if (!terminalEnvelope) throw new Error('Expected a terminal command.');
+		const duplicate = await repository.command('owner-1', terminalEnvelope);
+		expect(duplicate.kind).toBe('duplicate');
+		expect(await repository.history('owner-1')).toHaveLength(1);
 	});
 });

@@ -6,6 +6,8 @@
 
 `Your GM will sometimes tell you to level up, typically after a climactic story beat. Whenever you do so, mark down your new level on your character sheet, choose a new perk that you meet the stat requirements for, and add 5 points to one attribute. Then, roll a d100 for every other stat. If this d100 roll is above the stat you rolled for, then it increases by 5. The maximum level for any character is 10.` 
 
+`In addition, you will increase your maximum health by 1d10 + your Heart Modifier.` 
+
 #### **`ALTERNATIVE RULE: EXPERIENCE-BASED ADVANCEMENT`**
 
 `Rather than advancing your levels based on story beats, characters can level up by attaining victory in combat. With this method, when the players achieve victory in combat, add up the level of each enemy in a combat encounter, and divide it by the number of characters in the party. Each player character gains that much experience, rounded down. In order to advance to the next level, a character must gain 10 x their current level.` 
@@ -37,11 +39,11 @@
 
 **`Behemoth's Jaw.`** `(Maneuver) You obliterate an enemy that is near-death. When you use this maneuver, you deal Sharp or Blunt damage equal to your Heart Modifier to one enemy. If the target has less than half their hit points remaining, they instead take damage equal to half your Heart stat.`  
 **`Three Hundred against One.`** `(Ability) You gain 1 momentum for every enemy in combat, up to a maximum of 5.`  
-**`Warden`**`. (Passive) You can wield two handed weapons in one hand, to either duel wield them or carry a shield.`
+**`Gloom-Warden`**`. (Passive) You can wield two handed weapons in one hand, to either duel wield them or carry a shield.`
 
 #### **`PALADIN`**
 
-*`Requirement: 60 Soul`*
+*`Requirement: 80 Soul`*
 
 `When you become a Paladin, you choose an Origin Perk from Soul, and gain the following features:`
 
@@ -51,7 +53,7 @@
 
 #### **`DARK KNIGHT`**
 
-*`Requirement: 60 Mind`*
+*`Requirement: 80 Mind`*
 
 *`You are baptized in blood and bound by your blade. You quench the thirst of your weapon with blood, be it your own or your foes'. A Dark Knight knows the natural law of Sowing and Reaping, and pulls forth their blade to exact their right to reap.`* 
 
@@ -65,7 +67,7 @@
 
 #### **`CAVALIER`**
 
-*`Requirement: 60 Reflex`*
+*`Requirement: 80 Reflex`*
 
 `When you become a Cavalier, you choose an Origin Perk from Reflex, and gain the following features:`
 
@@ -76,7 +78,7 @@
 
 #### **`SWORD SINGER`**
 
-*`Requirement: 60 Voice`*
+*`Requirement: 80 Voice`*
 
 `When you become a Sword Singer, you choose an Origin Perk from Voice, and gain the following features:`
 
@@ -97,8 +99,6 @@
 **`Confession`**`. (Ritual) A character can confess their sins to you. You pray for their forgiveness, and an amount of Sin equal to your Soul Modifier is removed from them. A character can only confess to you once per day.`  
 **`Divinity.`** `(Passive) When you heal a target or grant a target temporary health, you gain 1 momentum.`
 
-**`Recommended Weapons:`** `Sling, Mace, Serpent Staff, Needled Wheel, Prayer Book.`
-
 # **SPECIALIZATIONS**
 
 #### **`PROPHET`**
@@ -116,7 +116,7 @@
 
 #### **`PALADIN`**
 
-*`Requirement: 60 Heart`*
+*`Requirement: 80 Heart`*
 
 `When you become a Paladin, you choose an Origin Perk from Heart, and gain the following features:`
 
@@ -126,7 +126,7 @@
 
 #### **`OCCULTIST`**
 
-*`Requirement: 60 Mind`*
+*`Requirement: 80 Mind`*
 
 `When you become an Occultist, you choose an Origin Perk from Mind, and gain the following features:`
 
@@ -136,7 +136,7 @@
 
 #### **`INQUISITOR`**
 
-*`Requirement: 60 Reflex`*
+*`Requirement: 80 Reflex`*
 
 `When you become an Inquisitor, you choose an Origin Perk from Reflex, and gain the following features:`
 
@@ -146,7 +146,7 @@
 
 #### **`PSALMIST`**
 
-*`Requirement: 60 Voice`*
+*`Requirement: 80 Voice`*
 
 `When you become a Psalmist, you choose an Origin perk from Voice and gain the following features:`
 
@@ -169,28 +169,27 @@
 
 `Scouts choose one Origin perk from Reflex, and gain the following features:`
 
-**`Surprise Attack.`** `(Maneuver) You make a single weapon attack with advantage. If the attack already has advantage, roll a number of d10s equal to your level. You deal additional damage equal to the result rolled.`   
+**`Surprise Attack.`** `(Maneuver) You make a single weapon attack with advantage. If the attack already has advantage, roll a number of d10s equal to your Reflex Modifier. You deal additional damage equal to the result rolled.`   
 **`Sneak`**`. (Action) You attempt to hide yourself within the thick of battle. Roll Reflex, and on a success, you become Hidden until you target an enemy with an attack, ability, or maneuver.`  
-**`Cling to Shadows.`** `(Ability) You weave through the fight with agility and stay close to the edges of your enemy’s vision. Roll Reflex, and on a hard success, your next ability, maneuver or attack that would reveal you doesn’t.`  
-**`Hunter`**`. (Ritual) Once per day, you can make a Reflex roll, and on a success, you are able to hunt the local game for food. Your hunt provides enough food for an amount of characters equal to half your Reflex Modifier.`  
+**`Cling to Shadows.`** `(Ability) You weave through the fight with agility and stay close to the edges of your enemy’s vision. When you would next be revealed, Roll Reflex, and on a success, you remain hidden for the remainder of that turn. Hunter. (Ritual) Once per day, you can make a Reflex roll, and on a success, you are able to hunt the local game for food. Your hunt provides enough food for an amount of characters equal to half your Reflex Modifier.`  
 **`Expertise`**`. (Passive) Choose one type of Reflex Weapon (Longbow, Dagger, Spear, etc). Your critical chance increases by 5 when you attack with that weapon type.`  
 **`Ambusher.`** `(Passive) If you are hidden when you end your turn, you gain 2 momentum.`
 
 ## **SPECIALIZATIONS**
 
-#### **`ARCHER`**
+#### **`WARDEN`**
 
 *`Requirement: 80 Reflex`*
 
-`When you become an Archer, you choose an Origin Perk from Reflex, and gain the following features:`
+`When you become a Warden, you choose an Origin Perk from Reflex, and gain the following features:`
 
-**`Raining Volley`**`. (Maneuver) You rain down arrows on an entire rank of your enemies. Each enemy on a rank of your choice takes Sharp or Blunt damage, whichever matches your currently held weapon, equal to your Reflex Modifier.`  
-**`Focus Fire`**`. (Ability) When you use this ability, you mark one enemy of your choice. Until the end of your next turn, each time you damage that enemy, they gain a stack of Focus, which increases your critical chance against them by 5. Using this ability again on the same enemy before the end of your next turn will refresh the duration, allowing you to continue placing Focus stacks on them. The maximum amount of Focus stacks you can place on an enemy is equal to your Reflex modifier, and they lose all stacks immediately if they are no longer marked.`  
-**`Deadeye`**`. (Passive) When attacking with a ranged weapon from the back rank, your critical chance is increased by 5.`
+**`Called Shot`**`. (Maneuver) Your next attack with advantage deals double damage.`  
+**`Hunter’s Mark`**`. (Ability) When you use this ability, you mark one enemy of your choice. Your critical chance against them increases by 5, and increases by an additional 5 every time you damage them. The mark goes away if you fail to damage them for a turn.`   
+**`Deadeye`**`. (Passive) When attacking an enemy from the Far Rank, or attacking an enemy on the Far Rank, your critical chance is increased by 10.`
 
 #### **`CAVALIER`**
 
-*`Requirement: 60 Heart`*
+*`Requirement: 80 Heart`*
 
 `When you become a Cavalier, you choose an Origin Perk from Heart, and gain the following features:`
 
@@ -198,9 +197,11 @@
 **`Meteor Joust`**`. (Ability) You charge through the enemy lines as a comet of force. You make a weapon attack against one enemy in the near rank, and another in the far rank. These weapon attacks deal additional damage equal to your Heart Modifier.`  
 **`Reign and Reins.`** `(Passive) You can spend 5 momentum, at any time, to make a single weapon attack if you are mounted.`
 
+#### 
+
 #### **`INQUISITOR`**
 
-*`Requirement: 60 Soul`*
+*`Requirement: 80 Soul`*
 
 `When you become an Inquisitor, you choose an Origin Perk from Soul, and gain the following features:`
 
@@ -210,7 +211,7 @@
 
 #### **`SHADOW`**
 
-*`Requirement: 60 Mind`*
+*`Requirement: 80 Mind`*
 
 `When you become a Shadow, you choose an Origin Perk from Mind, and gain the following features:`
 
@@ -220,7 +221,7 @@
 
 #### **`SERPENT`**
 
-*`Requirement: 60 Voice`*
+*`Requirement: 80 Voice`*
 
 `When you become a Serpent, you choose an Origin Perk from Voice, and gain the following features:`
 
@@ -234,7 +235,7 @@
 
 `Magi choose an Origin perk from Mind, and gain the following features:`
 
-**`Shooting Star`**`. (Maneuver) You call down a star from the heavens that builds velocity with each success from your allies. Until the end of your next turn, count the number of Hard or Critical Successes made by your or your allies. At the end of your next turn, roll a number of d10s equal to the Hard or Critical successes made. You deal Cold, Dark, Lightning, Holy, or Flame damage equal to the result rolled + your Mind modifier, to one enemy of your choice.`  
+**`Shooting Star`**`. (Maneuver) You call down a star from the heavens that builds velocity with each success from your allies. Until the end of your next turn, count the number of Hard or Critical Successes made by you or your allies. At the end of your next turn, roll a number of d10s equal to the Hard or Critical successes made. You deal Cold, Dark, Lightning, Holy, or Flame damage equal to the result rolled + your Mind modifier, to one enemy of your choice.`  
 **`Guidance.`** `(Action) Choose one target. That target has all of their rolls lowered by your Mind modifier + your Level until the end of your next turn.`  
 **`Bolt`**`. (Action) You fire a bolt of energy at your enemies. Make a Mind roll, and on a success, you deal 1d10 + your Mind Modifier Cold, Dark, Lightning, Holy, or Flame damage to one target of your choice. The Mind roll to hit with this ability is lowered by an amount equal to your Sin.`  
 **`Indestia Cantio.`** `(Ability, Sin +1) Roll Mind, and on a success, you blast a group of enemies with energy. One rank of your choice takes Cold, Dark, Lightning, Holy, or Flame damage equal to your Mind Modifier. On a Hard Success, the damage increases by an amount equal to your level. If you fail this roll, you cannot cast this spell again for the remainder of the combat.`  
@@ -262,7 +263,7 @@
 
 #### **`DARK KNIGHT`**
 
-*`Requirement: 60 Heart`*
+*`Requirement: 80 Heart`*
 
 *`You are baptized in blood and bound by your blade. You quench the thirst of your weapon with blood, be it your own or your foes'. A Dark Knight knows the natural law of Sowing and Reaping, and pulls forth their blade to exact their right to reap.`* 
 
@@ -274,7 +275,7 @@
 
 #### **`OCCULTIST`**
 
-*`Requirement: 60 Soul`*
+*`Requirement: 80 Soul`*
 
 `When you become an Occultist, you choose an Origin Perk from Soul, and gain the following features:`
 
@@ -284,7 +285,7 @@
 
 #### **`SHADOW`**
 
-*`Requirement: 60 Reflex`*
+*`Requirement: 80 Reflex`*
 
 `When you become a Shadow, you choose an Origin Perk from Reflex, and gain the following features:`
 
@@ -294,7 +295,7 @@
 
 #### **`DIPLOMAT`**
 
-*`Requirement: 60 Voice`*
+*`Requirement: 80 Voice`*
 
 `When you become a Diplomat, you choose an Origin Perk from Voice, and gain the following features:`
 
@@ -337,7 +338,7 @@
 
 #### **`SWORD SINGER`**
 
-*`Requirement: 60 Heart`*
+*`Requirement: 80 Heart`*
 
 `When you become a Sword Singer, you choose an Origin Perk from Heart, and gain the following features:`
 
@@ -347,7 +348,7 @@
 
 #### **`PSALMIST`**
 
-*`Requirement: 60 Soul`*
+*`Requirement: 80 Soul`*
 
 `When you become a Psalmist, you choose an Origin perk from Soul and gain the following features:`
 
@@ -366,7 +367,7 @@
 
 #### **`SERPENT`**
 
-*`Requirement: 60 Reflex`*
+*`Requirement: 80 Reflex`*
 
 `When you become a Serpent, you choose an Origin Perk from Reflex, and gain the following features:`
 
@@ -376,7 +377,7 @@
 
 #### **`DIPLOMAT`**
 
-*`Requirement: 60 Mind`*
+*`Requirement: 80 Mind`*
 
 `When you become a Diplomat, you choose an Origin Perk from Mind, and gain the following features:`
 

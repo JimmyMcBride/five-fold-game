@@ -6,7 +6,12 @@ import { resolveCommand } from '$lib/game/engine';
 import type { GameState, RunSummary } from '$lib/game/model';
 import { projectRun, type RunProjection } from '$lib/game/projection';
 import { createRng } from '$lib/game/rng';
-import { createInitialState, summarizeRun, type NewRunInput } from '$lib/game/state';
+import {
+	createInitialState,
+	decodeGameState,
+	summarizeRun,
+	type NewRunInput
+} from '$lib/game/state';
 import { createPocketBaseService } from './pocketbase';
 
 export interface CommandEnvelope {
@@ -101,7 +106,7 @@ class MemoryRunRepository implements RunRepository {
 interface GameRunRecord extends RecordModel {
 	owner: string;
 	active_owner: string;
-	snapshot: GameState;
+	snapshot: unknown;
 	seed: string;
 	rng_cursor: number;
 	status: GameState['status'];
@@ -126,7 +131,7 @@ class PocketBaseRunRepository implements RunRepository {
 				.getFirstListItem<GameRunRecord>(
 					this.pb.filter('owner = {:owner} && status = "active"', { owner: ownerId })
 				);
-			return projectRun(record.snapshot, record.version);
+			return projectRun(decodeGameState(record.snapshot), record.version);
 		} catch (error) {
 			if (error instanceof ClientResponseError && error.status === 404) return null;
 			throw error;
@@ -162,16 +167,17 @@ class PocketBaseRunRepository implements RunRepository {
 		if (run.owner !== ownerId) throw new RunNotFoundError();
 		const existing = await this.findCommand(envelope.runId, envelope.commandId);
 		if (existing) return { kind: 'duplicate', projection: existing.projection };
+		const snapshot = decodeGameState(run.snapshot);
 		if (run.version !== envelope.expectedVersion) {
-			return { kind: 'stale', projection: projectRun(run.snapshot, run.version) };
+			return { kind: 'stale', projection: projectRun(snapshot, run.version) };
 		}
 
-		const rng = createRng(`${run.seed}:commands`, run.rng_cursor);
-		const resolution = resolveCommand(run.snapshot, envelope.command, rng);
+		const rng = createRng(`${snapshot.seed}:commands`, snapshot.rngCursor);
+		const resolution = resolveCommand(snapshot, envelope.command, rng);
 		if (resolution.events[0]?.kind === 'command-rejected') {
 			return {
 				kind: 'rejected',
-				projection: projectRun(run.snapshot, run.version, resolution.events)
+				projection: projectRun(snapshot, run.version, resolution.events)
 			};
 		}
 		const nextVersion = run.version + 1;
@@ -217,7 +223,10 @@ class PocketBaseRunRepository implements RunRepository {
 			if (duplicate) return { kind: 'duplicate', projection: duplicate.projection };
 			const latest = await this.pb.collection('game_runs').getOne<GameRunRecord>(run.id);
 			if (latest.version !== envelope.expectedVersion) {
-				return { kind: 'stale', projection: projectRun(latest.snapshot, latest.version) };
+				return {
+					kind: 'stale',
+					projection: projectRun(decodeGameState(latest.snapshot), latest.version)
+				};
 			}
 			throw error;
 		}

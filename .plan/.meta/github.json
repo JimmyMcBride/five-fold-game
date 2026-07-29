@@ -2,7 +2,7 @@
   "repo": "JimmyMcBride/five-fold-game",
   "repo_url": "https://github.com/JimmyMcBride/five-fold-game",
   "default_branch": "main",
-  "last_updated_at": "2026-07-29T07:14:58Z",
+  "last_updated_at": "2026-07-29T16:28:57Z",
   "stories": {},
   "planning": {
     "single-player-procedural-st-bozma-roguelike": {
@@ -17,6 +17,19 @@
       "entry_mode": "local_promotion",
       "source_mode": "local",
       "updated_at": "2026-07-29T07:14:58Z"
+    },
+    "update-canonical-game-rules-and-runtime-to-fivefold-v0-8-5": {
+      "slug": "update-canonical-game-rules-and-runtime-to-fivefold-v0-8-5",
+      "kind": "spec",
+      "title": "Update canonical game rules and runtime to Fivefold v0.8.5",
+      "issue_number": 4,
+      "issue_url": "https://github.com/JimmyMcBride/five-fold-game/issues/4",
+      "remote_state": "open",
+      "readiness": "ready",
+      "ownership_mode": "github",
+      "entry_mode": "local_promotion",
+      "source_mode": "local",
+      "updated_at": "2026-07-29T16:28:57Z"
     }
   }
 }

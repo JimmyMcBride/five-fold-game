@@ -36,6 +36,11 @@
 `Example Radiant Blade: Excalibur`  
 `Longsword. All weapon attacks with this longsword deal an additional d10 of damage, which cannot be resisted. When someone rests with this blade, they must pass a hard Heart roll or lose a recovery die.`
 
+# THE SHIFTING RADIANCE
+
+`In what was once the homeland of the Sphinxites, there is an ever shifting, glowing cloud that sickens whatever life dares to dwell there. This cloud rises from hundreds of glowing craters where orders of knights who carried Radiant Blades fought a civil war against one another after the fall of the Sinistre Empire. The glow warps and mutates life, but there is much of value still left in this exclusion zone for those brave enough to explore the wasteland in small doses. Monstrosities and undead wander the Radiance, and somewhere within the fog, an ancient king, older than time itself, watches from his fortress. He is only known as The Lich King. From his ancient mind came the dark arts of Vesselism: the practice of binding one’s soul to a new, inanimate body.`  
+	`Vessels are most often powerful Magi, who have grown close to death due to age or sickness, and wish not to allow their mortal forms and souls to corrupt upon death into the demonic. The Lich King’s forbidden rites allow them to transfer their soul to something fitting - a suit of armor, a doll, a mannequin - by draining their blood through it in an excruciating ritual. The ritual does not always portend success, and failure is costly, as either the soul is split and left nearly mindless in the vessel and corrupted in the flesh, or they are left in severe pain that cannot be soothed, as if their final moments of agony are eternally perpetuated. Those that do manage to succeed are granted a much longer lifespan - potentially infinite.`
+
 # 
 
 # ARGESH

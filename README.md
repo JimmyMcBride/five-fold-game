@@ -38,13 +38,19 @@ bun run test:e2e
 
 Project work runs these commands through `brain session run -- ...` so Brain records verification.
 
+To verify a downloaded copy of the pinned v0.8.5 Google Docs markdown export:
+
+```sh
+bun run rules:verify -- /path/to/fivefold-v0.8.5.md
+```
+
 ## Project Map
 
 - `src/lib/game/` — pure deterministic command engine.
 - `src/lib/server/` — server-only integrations, including PocketBase.
 - `src/routes/` — SvelteKit UI and server route boundaries.
 - `pocketbase/pb_migrations/` — reviewed, reversible public-alpha run schema.
-- `docs/game-rules/` — byte-preserved canonical Fivefold v0.8 Beta import.
+- `docs/game-rules/` — byte-verified canonical Fivefold v0.8.5 Beta import.
 - `docs/adaptations/` — explicit dungeon-crawler decisions; never canonical rules.
 - `docs/reference/fivefold-table/` — legacy table-era implementation references.
 - `skills/fivefold-*/` — project-local agent workflows.

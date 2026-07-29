@@ -48,7 +48,7 @@
 `(Flavor Text)`  
 `Moon Elves gain the following features:`  
 **`Multi-Faceted.`** `Start with +10 to any stat.`  
-**`10,000 Hours.`** `Moon Elves are particularly practiced in one of their backgrounds thanks to their long lives. Choose one of your backgrounds, and any Normal success is treated as a Hard success when rolling for that background.`
+**`10,000 Hours.`** `Moon elves start with a second perk.`
 
 # **SABRE-TOOTH ELVES**
 

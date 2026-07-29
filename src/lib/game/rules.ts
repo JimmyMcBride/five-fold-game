@@ -27,6 +27,10 @@ export interface RollOptions {
 	disadvantage?: boolean;
 }
 
+export function isNaturalOne(roll: RollResult): boolean {
+	return roll.kept === 1 && roll.rolls.includes(1);
+}
+
 export function rollStat(
 	rng: RandomSource,
 	stat: StatName,

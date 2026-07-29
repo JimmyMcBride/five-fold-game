@@ -6,9 +6,9 @@
 
 ## **STATS & MODIFIERS**
 
-`Each character in Fivefold has 5 primary stats that they use to determine their likelihood of success on a task. These are Soul, Heart, Mind, Reflex, and Voice. These stats reflect the different physical and mental attributes of a character, and are measured in numbers between 0 and 90. Intuitively, the higher the stat, the better a character is with any skills or tasks related to that stat.`
+`Each character in Fivefold has 5 primary stats that they use to determine their likelihood of success on a task. These are Soul, Heart, Mind, Reflex, and Voice. These stats reflect the different physical and mental attributes of a character, and are measured in numbers between 0 and 85. Intuitively, the higher the stat, the better a character is with any skills or tasks related to that stat.`
 
-**`Heart`**`: Your bodily strength and resilience. A character’s total Health is equal to their Heart stat.`  
+**`Heart`**`: Your bodily strength and resilience. A character’s Heart stat contributes to their total health. When your heart stat increases, your maximum health increases by the same amount.`  
 **`Mind`**`: Your worldly intellect and intuition. Investigating clues, lore, and the occult.`  
 **`Reflex`**`: Your dexterity and speed.`  
 **`Soul`**`: Your moral compass, and resilience of spirit. Your ability to stay in touch with your own humanity, and divinity.`  
@@ -51,5 +51,5 @@
 
 ## **LIGHT**
 
-`Typically, carrying a light source is important. When exploring, rolls made that rely on sight are made with disadvantage if you do not have a nearby lightsource. When fighting, weapon attacks have disadvantage if there is not a nearby light source. A single Only one character needs to hold a lightsource during combat, but if that character dies or drops the light for any reason, the battlefield darkens.` 
+`Typically, carrying a light source is important. When exploring, rolls made that rely on sight are made with disadvantage if you do not have a nearby lightsource. When fighting, weapon attacks have disadvantage if there is not a nearby light source. Only one character needs to hold a lightsource during combat, but if that character dies or drops the light for any reason, the battlefield darkens.` 
 

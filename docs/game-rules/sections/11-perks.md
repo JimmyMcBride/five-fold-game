@@ -15,12 +15,12 @@
 **`Nourished`**`. (Passive) While Well Fed, all of your rolls are decreased by 5.`  
 **`Provoke`**`. (Ability) You Taunt one enemy until the end of your next turn, forcing them to target only you with Weapon Attacks.`  
 **`Hold the Line`**`. (Ability) Until the end of your next turn, you take 1 less damage for each ally on the Near Rank.`  
-**`Tempered as Gold`**`. (Passive) When you are suffering from a negative condition, all of your rolls are lowered by an amount equal to your Heart Modifier.`
+**`Tempered as Gold`**`. (Passive) When you are suffering from a negative condition, all of your rolls gain a bonus equal to your Heart Modifier.`
 
 #### **`Prerequisite: 45`**
 
 **`Relentless Endurance`**`. (Passive) When you reach your Momentum Threshold, you gain Temporary health equal to your Heart Modifier.`  
-**`Shield Wall`**`. (Ability) Until the end of your next turn, allies in the Far Rank lower their defensive rolls by 20.`  
+**`Shield Wall`**`. (Ability) Until the end of your next turn, allies in the Far Rank gain a bonus to their defensive rolls equal to 20.`  
 **`Prayer of the Berserker`**`. (Ritual) You meditate on your own mortality, and use doom to empower your fury. If you have more than half of your total hit points, you drop to half and cannot be healed above half your total hit points until the start of the next day. While below half your total hit points, you deal extra damage with your weapon attacks equal to your Heart Modifier.`  
 **`Shockwave`**`. (Maneuver) You stomp the ground and crack the cold earth beneath you. Roll Heart against each enemy in the Near Rank. Each target you succeed against is Stunned until the start of your next turn.`
 
@@ -46,7 +46,7 @@
 
 #### **`Prerequisite: 85`**
 
-**`Avalanche Charge`**`. (Maneuver) The Blizzard quakes at your advance, and rises beneath you to level the battlefield. When you use this Maneuver, all enemies take Cold damage equal to your Heart and are forced onto the Near Rank.`  
+**`Avalanche Charge`**`. (Maneuver) The Blizzard quakes at your advance, and rises beneath you to level the battlefield. When you use this Maneuver, all enemies take Cold damage equal to your Heart Modifier and are forced onto the Near Rank.`  
 **`Last Stand`**`. (Passive) The first time you would drop to 0 hit points in combat, you instead drop to 1 hitpoint and gain temporary hit points equal to your Heart stat.`  
 **`The Largest Threat`**`. (Ability) You Taunt every enemy on the Near Rank until the end of your next turn.`
 
@@ -54,7 +54,7 @@
 
 #### **`Origin Perks:`**
 
-**`Fasting and Prayer`**`. (Passive) When you are Hungry, Soul rolls are decreased by 10.`  
+**`Fasting and Prayer`**`. (Passive) When you are Hungry, you gain a bonus of 10 to Soul rolls.`  
 **`No Weapon Formed Against Me`**`. (Passive) You can use your Soul stat instead of Reflex for defensive rolls.`  
 **`Sanctified`**`. (Passive) While you have no Sin, all of your modifiers increase by 1.`
 
@@ -63,12 +63,12 @@
 **`Summon Seraphim.`** `(Ability, Summon) You summon an angelic being. When it appears, it removes one condition and 1 Sin from you or an ally by touching holy embers to the target's lips. On your turn, it can use the Divine Flames ability, which deals flame damage equal to your Soul Modifier to one enemy. It can only remove Sin from the same target once per combat.`   
 **`Prayer of Healing.`** `(Ability) You pray over yourself or an ally to heal wounds. Roll Soul, and if you are successful, you heal for 1d10 + your Soul Modifier. If you fail this roll, you heal for your Soul Modifier, but cannot use this ability again until the next day. You must be on the same rank as your target when you use this ability.`  
 **`Truth of Mercy.`** `(Passive) At the start of the day, your Sin is removed.`  
-**`Oath against Bloodshed.`** `(Passive) Your attack rolls with weapons that deal blunt damage are lowered by an amount equal to your Soul Modifier.`
+**`Oath against Bloodshed.`** `(Passive) Your attack rolls with weapons that deal blunt damage gain a bonus equal to your Soul Modifier.`
 
 #### **`Prerequisite: 45`**
 
 **`Lay on Hands.`** `(Passive) When you heal yourself or an ally, one other character on the same rank is healed for half the amount.`  
-**`Radiant Call.`** `(Ability) You call forth and manifest celestial judgement with a bolt of light. Roll Soul against a target, and on a success, they take Holy damage equal to your Soul Modifier, and attack rolls against that target are lowered by the same amount until the end of your next turn.`  
+**`Radiant Call.`** `(Ability) You call forth and manifest celestial judgement with a bolt of light. Roll Soul against a target, and on a success, they take Holy damage equal to your Soul Modifier, and all attack rolls against that target are lowered by the same amount until the end of your next turn.`  
 **`Quickened by Spirit.`** `(Passive) When you heal an ally that is below half their total health, you gain 2 momentum.`  
 **`Guardian Angel.`** `(Passive) When there is an allied Angel in combat, one creature of your choice is granted Temporary health equal to your Soul Modifier at the start of each of your turns.`
 
@@ -120,7 +120,7 @@
 
 #### **`Prerequisite: 55`**
 
-**`Extra Attack`**`. (Passive) When you use your action to attack with a Reflex weapon, you can make two weapon attacks instead of one. You do not gain more momentum when you make this attack.`  
+**`Extra Attack`**`. (Passive) When you use your action to attack with a Reflex weapon, you can make two weapon attacks instead of one.`  
 **`Hide`**`. (Maneuver) You switch ranks and disappear into the chaos of battle. You are hidden until you use an action, ability, or maneuver that harms an enemy.`  
 **`Precision`**`. (Ability) Once per day, you make the critical chance for your Reflex weapons increase by 20. This lasts until the end of the current combat encounter.`  
 **`Poison Dart`**`. (Action) You carry poison-tipped darts on you. These count as Reflex weapons that deal 1d10 Poison damage, with the following properties: One Handed, Far, 1 Momentum.`
@@ -145,7 +145,7 @@
 #### **`Prerequisite: 85`**
 
 **`Haste`**`. (Passive) When you earn momentum with a weapon attack, you earn one additional momentum.`  
-**`Killshot`**`. (Ability) If you critically strike before the end of your next turn, the hit deals additional damage equal to half your Reflex skill.`  
+**`Killshot`**`. (Ability) If you critically strike before the end of your next turn, the hit deals additional damage equal to half your Reflex stat.`  
 **`Assassin`**`. (Passive) Your poison damage is doubled against enemies that are below half health.`
 
 # **MIND**
@@ -154,11 +154,12 @@
 
 **`One's own Understanding`**`. (Passive) Your abilities deal extra damage equal to your Sin, up to a maximum of your Mind Modifier.`  
 **`Divination`**`. (Ritual) At the start of a session, roll 2 d10's, and keep track of them. You may replace any two d10 rolls with the result of a Divination roll. This includes the tens or ones place in a d100 roll.`  
-**`Summoner`**`. (Passive) Your rolls made to maintain concentration are lowered by 10.`
+**`Summoner`**`. (Passive) Your rolls made to maintain concentration are lowered by 10.`  
+**`Calculated Risk.`** `(Passive) When you take damage, you can choose to reduce the damage by your Mind Modifier. You gain 1 Sin when you do this.`
 
 #### **`Prerequisite: 35`**
 
-**`Summon Merihem`**`. (Ability, Summon, Sin +1) You summon a small demon to act as a nuisance to your enemies. The demon can use the Distraction ability, which causes attack rolls against one target to have advantage. In addition, any time that target would gain health, the amount it would gain is reduced by your Mind Modifier.`  
+**`Summon Merihem`**`. (Ability, Summon, Sin +1) You summon a small demon to act as a nuisance to your enemies. The demon can use the Distraction ability, which causes attack rolls against one target to have advantage. In addition, any time that target would gain health or temporary health, the amount it would gain is reduced by your Mind Modifier.`  
 **`Expert`**`. (Passive) Choose one of your backgrounds. Whenever you make a roll associated with that background, your Hard Success and Critical Success ranges are increased by an amount equal to your Level + your Mind Modifier.`  
 **`Black Cloud`**`. (Ability, Sin +1) You cast a shadowy cloud over an enemy and obscure their vision. Make a Mind roll, and on a success, you deal 1d10 + your Mind Modifier Dark damage. On a Hard Success, the enemy is blinded until the end of your next turn. If you fail this roll, you cannot cast this spell for the remainder of the combat.`
 
@@ -171,7 +172,7 @@
 
 #### **`Prerequisite: 55`**
 
-**`Summon Furies`**`. (Ability, Summon, Sin +1) You summon a swarm of demons. This swarm can use the Bottomless Pit ability. Roll Mind, and on a success, an enemy is Banished until the end of your next turn.`  
+**`Summon Furies`**`. (Ability, Summon, Sin +1) You summon a swarm of demons. This swarm can use the Legion’s Swarm ability, which causes one rank of enemies to take 1d10 + your mind modifier Dark damage.`  
 **`Packrat`**`. (Passive) You can pack more into your bags than most. You can now fit two day's worth of Food or Fuel into one inventory slot, rather than one. Food and Fuel do not stack with each other.`  
 **`Druid`**`. (Ritual, Sin +1) You invoke a magical rite that forces the world to bend to your will. You give the hex you are currently in the Bountiful property.`  
 **`Deal with Devils`**`. (Passive) Whenever a demon you have summoned uses their ability, you gain 1 momentum.`
@@ -195,7 +196,7 @@
 
 **`Summon Nephelim`**`. (Ability, Summon, Sin +2) You summon a giant Demon that was once the spawn of Hell's princes, and unbind it from the chains that held it jailed. The Nephelim can use the Wrathful Crush ability, which deals Blunt damage equal to your Mind modifier to the near rank of enemies. When this happens, roll Mind for each enemy, and on a Hard success, the enemy is bound, stunned and silenced.`  
 **`Sin Shield`**`. (Ability) You turn your burden of Sin into a ward of protection. Roll Mind, and on a success, you gain temporary hit points equal to your Sin + your Mind Modifier.`  
-**`Fira Infernox`**`. (Ability, Sin +2) You hurl a devastating ball of hellfire toward your enemies. Roll Mind, and on a success, you deal 3d10 + your Mind modifier Flame damage to a rank of enemies. On a hard success, roll a number of d10s equal to your mind modifier. You deal additional flame damage equal to the result. If you fail this roll, you cannot cast this spell for the remainder of the combat.`
+**`Igniens Infernus`**`. (Ability, Sin +2) You hurl a devastating ball of hellfire toward your enemies. Roll Mind, and on a success, you deal 3d10 + your Mind modifier Flame damage to a rank of enemies. On a hard success, roll a number of d10s equal to your mind modifier. You deal additional flame damage equal to the result. If you fail this roll, you cannot cast this spell for the remainder of the combat.`
 
 # **VOICE**
 
@@ -203,7 +204,8 @@
 
 **`Firebrand.`** `(Passive) When you deal damage and roll a 9 or 10 on a damage die, you deal 1d10 additional Flame damage.`  
 **`On a Roll.`** `(Passive) If an ally on your rank rolls a critical success, you gain 1d10 momentum immediately.`   
-**`Captivating`**`. (Passive) When you enter battle, choose an ally. That ally gains 1 momentum each time you gain momentum.`
+**`Captivating`**`. (Passive) When you enter battle, choose an ally. That ally gains 1 momentum each time you gain momentum.`  
+**`Misdirection`**`. (Passive) When you take damage, you can spend half your current momentum to halve the damage.` 
 
 #### **`Prerequisite: 35`**
 

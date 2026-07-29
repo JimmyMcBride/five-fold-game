@@ -3,6 +3,7 @@ import { getLegalCommands } from './engine';
 import type { GameEvent } from './events';
 import type { EnemyState, GameState, RunSummary, Stats } from './model';
 import { ROOM_TEMPLATES } from './content/rooms';
+import { CONTENT_VERSION } from './state';
 
 export interface PlayerProjection {
 	name: string;
@@ -51,6 +52,12 @@ export interface RunProjection {
 	player: PlayerProjection;
 	enemies: EnemyProjection[];
 	decodeCount: number;
+	combat: {
+		maxActionPoints: number;
+		actionPoints: number;
+		usedActionIds: string[];
+		defenseLabel: 'Block' | 'Dodge' | 'Soul';
+	} | null;
 	commands: LegalCommand[];
 	events: GameEvent[];
 }
@@ -112,6 +119,20 @@ export function projectRun(
 		},
 		enemies: state.encounter?.enemies.filter((enemy) => enemy.hp > 0).map(projectEnemy) ?? [],
 		decodeCount: state.encounter?.decodeCount ?? 0,
+		combat:
+			state.encounter && state.contentVersion === CONTENT_VERSION
+				? {
+						maxActionPoints: 2,
+						actionPoints: state.encounter.turn.actionPoints ?? 0,
+						usedActionIds: [...(state.encounter.turn.usedActionIds ?? [])],
+						defenseLabel:
+							state.player.defense === 'heart'
+								? 'Block'
+								: state.player.defense === 'reflex'
+									? 'Dodge'
+									: 'Soul'
+					}
+				: null,
 		commands: getLegalCommands(state),
 		events
 	};

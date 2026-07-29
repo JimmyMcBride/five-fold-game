@@ -7,8 +7,10 @@ const COMMAND_TYPES = new Set([
 	'move',
 	'inspect',
 	'attack',
+	'shove',
 	'use-feature',
 	'shift-rank',
+	'close-distance',
 	'set-defense',
 	'patch-up',
 	'choose',
@@ -63,7 +65,15 @@ function isGameCommand(value: unknown): value is GameCommand {
 		case 'move':
 			return typeof value.exitId === 'string';
 		case 'attack':
-			return typeof value.targetId === 'string';
+			return (
+				typeof value.targetId === 'string' &&
+				(value.economy === undefined || value.economy === 'action' || value.economy === 'maneuver')
+			);
+		case 'shove':
+			return (
+				typeof value.targetId === 'string' &&
+				(value.economy === 'action' || value.economy === 'maneuver')
+			);
 		case 'use-feature':
 			return (
 				typeof value.featureId === 'string' &&
@@ -73,6 +83,10 @@ function isGameCommand(value: unknown): value is GameCommand {
 			return value.stat === 'heart' || value.stat === 'reflex' || value.stat === 'soul';
 		case 'choose':
 			return typeof value.optionId === 'string';
+		case 'shift-rank':
+			return (
+				value.economy === undefined || value.economy === 'action' || value.economy === 'maneuver'
+			);
 		default:
 			return true;
 	}

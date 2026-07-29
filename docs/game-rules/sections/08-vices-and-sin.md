@@ -48,9 +48,9 @@
    
 **`Honeyed Words`**`. When you make a roll that relies on charm or attraction, the roll is lowered by 10. (E.G., bribing a noble with physical favors, distracting a guard using your body, flirting with someone to bargain.)`
 
-**`Restless Nights`**`. You cannot roll Recovery Dice during a rest unless a character who could be a romantic or sexual partner is resting nearby. If they are a PC or retainer, they must roll Heart, or they can only roll a single Recovery Die.`
+**`Restless Nights`**`. You cannot roll Recovery Dice during a rest unless a character who could be a romantic or sexual partner is resting nearby. If they are a PC or retainer, you must roll Soul, Heart, or Mind, and on a failure, you gain 1 Sin. You do not necessarily act upon your urges, but it is indicative of your proclivity to promiscuity.`
 
-**`Touch of Pleasure`**`. While you have 5 Sin or more, you restore additional hit points equal to your Sin when you heal someone or are healed. However, you become far easier to tempt, and must roll Mind to resist any invitation of pleasure, no matter how inconvenient or dangerous.`
+**`Touch of Pleasure`**`. While you have 5 Sin or more, you restore additional hit points equal to your Sin when you heal someone or are healed. However, you become far easier to tempt, and must roll Mind or Soul to resist any invitation of pleasure, no matter how inconvenient or dangerous.`
 
 # **WRATH**
 
@@ -94,7 +94,7 @@
    
 **`Avarice Inventory`**`. You have one additional inventory slot.` 
 
-**`Miser's Grip`**`. You must succeed on a Mind or Soul roll to willingly give away or discard any wealth or item. If you fail this roll, you retain the item and you gain 1 Sin.`
+**`Miser's Grip`**`. When you want to give away or discard any wealth or item, roll Mind or Soul. If you fail this roll, you gain 1 Sin.` 
 
 **`The Weight of Wealth`**`. While you have 5 Sin or more, you gain 2 additional Inventory slots. However, if your inventory has less than half its slots filled, you suffer a penalty to all rolls equal to your sin.` 
 
@@ -115,11 +115,11 @@
 *`You take no action or ability for two turns in a row. → Sin +1`*  
 *`You rest while Well Fed → Sin +1`*  
    
-**`Immovable Inertia`**`. If you take no action or ability on your turn, you gain +5 Momentum.`
+**`Immovable Inertia`**`. If you take no action or ability on your turn, you gain +5 Momentum and +1 Sin.`
 
 **`Slow to Stir`**`. Except for Immovable Inertia, your Actions, Passives, and Abilities do not give you any momentum on your first turn in combat.`
 
-**`Watch the World Burn`**`. While you have 5 Sin or more, you have advantage on Defensive rolls if you did not take an Action or Ability on your previous turn. However, each time you use a Maneuver, your enemies gain 1 momentum for Every 5 sin you have.` 
+**`Watch the World Burn`**`. While you have 5 Sin or more, you have advantage on Defensive rolls if you did not take an Action or Ability on your previous turn. However, each time you use a Maneuver, your enemies gain 1 momentum die for Every 5 sin you have.` 
 
 # **GLUTTONY**
 
@@ -144,7 +144,7 @@
 
 **`Insatiable Hunger`**`. When you are Well Fed, if you do not eat a meal for a day, you immediately become Hungry, rather than Sated.` 
 
-**`Endless Feast`**`. While you have 5 Sin or more, your weapon attacks deal 2 more damage while you are Well Fed. While you are hungry, your rolls suffer a penalty equal to your Sin, as you enter into withdrawals from your typical indulgence.` 
+**`Endless Feast`**`. While you have 5 Sin or more, your weapon attacks deal additional damage equal to your sin as long as you are Well Fed. While you are hungry, your rolls suffer disadvantage, as you enter into withdrawals from your typical indulgence.` 
 
 # **ENVY**
 
@@ -166,9 +166,9 @@
    
 **`Mirror the Best.`** `Once per day, you can use an action or ability that another player character has.` 
 
-**`Hesitant Aid`**`. Before you use an ability, action, or maneuver that would buff an ally, you must succeed on a Mind or Soul roll (your choice). If you fail, you cannot use that supportive effect this turn, and must choose a different action or ability.`
+**`Hesitant Aid`**`. Before you use an ability, action, or maneuver that would buff an ally, you must roll Mind or Soul. If you fail, you gain +1 Sin.`
 
-**`Codependent Rivalry`**`. While you have 5 Sin or more, you form a dependence on your comparisons to others. Choose one ally. Whenever they receive a buff, you also receive the same buff. However, for any stat in which your value is lower than your chosen ally’s, rolls using that stat suffer a penalty equal to your Sin.` 
+**`Codependent Rivalry`**`. While you have 5 Sin or more, you form a dependence on your comparisons to others. Choose one ally. Whenever they receive a buff, you also receive the same buff. However, for any stat in which your value is lower than your chosen ally’s, rolls using that stat suffer disadvantage.` 
 
 # **PRIDE**
 
@@ -191,7 +191,7 @@
    
 **`Solo Glory`**`. If you target an enemy that wasn't targeted by any other character since the end of the enemy's last turn, you gain 2 momentum.`
 
-**`No One's Help`**`. If an ally attempts to grant you a buff, you must succeed on a Mind or Soul roll, or lose all of your momentum. You can instead choose to refuse the buff, claiming that you do not need their help--or something equally dismissive and self-congratulating--and Gain 1 sin by doing so.` 
+**`No One's Help`**`. If an ally attempts to grant you a buff or heal you, roll Mind or Soul. On a failure, you gain 1 Sin.` 
 
-**`Self-Exalting`**`. While you have 5 Sin or more, buffs that you apply to yourself from abilities and maneuvers are doubled in strength. However, if any enemy taunts you, you take damage equal to your Heart Modifier.`
+**`Self-Exalting`**`. While you have 5 Sin or more, buffs and heals that you apply to yourself are doubled in strength. However, if any enemy taunts you, you take damage equal to your Heart Modifier.`
 

@@ -87,6 +87,7 @@ export interface EnemyDefinition {
 	id: string;
 	name: string;
 	maxHp: number;
+	sizeRank?: number;
 	reflexModifier: number;
 	rank: Rank;
 	attackName: string;
@@ -113,6 +114,8 @@ export interface CombatTurnState {
 	actionUsed: boolean;
 	abilityUsed: boolean;
 	maneuverAvailable: boolean;
+	actionPoints?: number;
+	usedActionIds?: string[];
 }
 
 export interface EncounterState {
@@ -159,6 +162,7 @@ export interface PlayerState {
 	equippedWeaponId: string;
 	inventory: string[];
 	usedFeatures: string[];
+	healthRolls?: number[];
 	effects: PlayerEffects;
 }
 

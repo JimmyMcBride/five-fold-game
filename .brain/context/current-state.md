@@ -1,5 +1,5 @@
 ---
-updated: '2026-07-29T16:17:43Z'
+updated: '2026-07-29T18:00:30Z'
 ---
 
 # Current State
@@ -22,6 +22,8 @@ Updated 2026-07-29.
 
 Plan check passes and source mode is `github`. The owner confirmed promotion of brainstorm `fivefold-web-text-dungeon-crawler-mvp`. Plan created [GitHub Issue #1](https://github.com/JimmyMcBride/five-fold-game/issues/1), `Single-player procedural St. Bozma roguelike`, with the `enhancement` and `plan:spec` labels. The owner approved the resolved issue on 2026-07-29; readiness is approved and implementation is authorized on a linked feature branch.
 
+Plan created [GitHub Issue #4](https://github.com/JimmyMcBride/five-fold-game/issues/4), `Update canonical game rules and runtime to Fivefold v0.8.5`, as a ready spec. Its implementation branch imports and byte-verifies the pinned v0.8.5 Google Doc, makes `st-bozma-v0.8.5-v2` the default for new runs, and retains explicit `st-bozma-mvp-v1` snapshot resolution. V2 adds two AP with duplicate-action lockout, Block/Dodge bands, Deathblows, Shove, free rank closing, seeded health growth, the 85 stat cap, and selected enemy/class corrections without a PocketBase schema change.
+
 The approved spec fixes the MVP at one seeded eight-room run, five exact level-1 class templates, deterministic room/combat/event resolution, immediate run-ending death at 0 HP, fixed solo enemy values, bounded XP progression, autosave/resume, and immutable prior-run summaries. Public alpha access uses the already-enabled PocketBase Discord OAuth provider without invitations or pre-provisioned users. Each run starts with a character name and class template; account-owned history persists but no power carries between runs.
 
 Plan mirrored Issue #1 under `.plan/.meta/github.json`. A post-promotion preview still reports `action: create` for the local brainstorm despite that mirror, so do not reapply the brainstorm promotion until Plan reconciles the existing issue identity.
@@ -37,6 +39,16 @@ signed-out → test-auth → five-class creation → movement/combat →
 refresh/resume → logout Playwright flow. The shared `reference-100756` seed
 reaches victory with all five templates while exercising a signature feature.
 PocketBase health and Discord provider discovery pass.
+
+Spec #4 implementation is complete on
+`codex/update-canonical-game-rules-and-runtime-to-fivefold-v0-8-5`. The pinned
+217152-byte rules export and all 17 sections verify against SHA-256
+`0a2b64f9ad9e83b3916152e6e4928ec6824c594e63987371ec970ee7ea77cadd`;
+re-import is idempotent. Lint, Svelte/TypeScript checks, 50 unit/integration
+tests, production build, and the AP/Block-Dodge/resume Playwright flow pass.
+Fivefold review found no remaining correctness, data-exposure, determinism,
+authorization, accessibility, or scope findings. Canonical source whitespace
+remains intentionally byte-preserved.
 
 The branch contains deterministic eight-room generation, five fixed kits,
 selected canonical class features, fixed solo enemies/progression/finale,

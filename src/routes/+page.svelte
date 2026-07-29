@@ -120,6 +120,14 @@
 	function statLabel(stat: string) {
 		return stat.charAt(0).toUpperCase() + stat.slice(1);
 	}
+
+	function actionLabel(id: string) {
+		const name = id.includes(':') ? id.slice(id.indexOf(':') + 1) : id;
+		return name
+			.split('-')
+			.map((part) => statLabel(part))
+			.join(' ');
+	}
 </script>
 
 <svelte:head>
@@ -357,8 +365,14 @@
 					</div>
 					<div>
 						<dt>Defense</dt>
-						<dd>{projection.player.defense}</dd>
+						<dd>{projection.combat?.defenseLabel ?? projection.player.defense}</dd>
 					</div>
+					{#if projection.combat}
+						<div>
+							<dt>AP</dt>
+							<dd>{projection.combat.actionPoints} / {projection.combat.maxActionPoints}</dd>
+						</div>
+					{/if}
 					<div>
 						<dt>Rooms</dt>
 						<dd>{projection.room.visitedCount} / 8</dd>
@@ -435,6 +449,18 @@
 						>
 					</div>
 				{:else}
+					{#if projection.combat}
+						<div class="command-economy" aria-label="Turn economy">
+							<strong
+								>{projection.combat.actionPoints} / {projection.combat.maxActionPoints} AP</strong
+							>
+							<span>
+								{projection.combat.usedActionIds.length > 0
+									? `Used: ${projection.combat.usedActionIds.map(actionLabel).join(', ')}`
+									: 'No actions used'}
+							</span>
+						</div>
+					{/if}
 					{#each commandGroups as [group, commands] (group)}
 						<div class="command-group">
 							<p class="label">{group}</p>

@@ -41,7 +41,7 @@
 **`Longbow`** `(Reflex or Heart, Far, Momentum 1, 2 Slots, Sharp, Two Handed, Damage: 2d10 + Attacking Stat Modifier, 30gp)`  
 *`Ability: Take aim`*`. You steadily aim a shot at a target. Your next attack roll is lowered by 20.` 
 
-**`Spear`** `(Reflex or Heart, Near, Momentum 2, 2 Slots, Sharp, One or Two Handed, Damage: 1d10 + Attacking Stat Modifier (One Handed), 2d10 + Attacking Stat Modifier (Two Handed), 10gp)`  
+**`Spear`** `(Reflex or Heart, Near, Momentum 2, 2 Slots, Sharp, One or Two Handed, Damage: Attacking Stat Modifier (One Handed), 1d10 + Attacking Stat Modifier (Two Handed), 10gp)`  
 *`Ability: Long Thrust`*`. Your next attack can target any enemy, regardless of ranks.`
 
 **`Dagger`** `(Reflex, Near, Momentum 3, 1 slot, Sharp, Light, One Handed, Damage: Half Attacking Stat Modifier, 10gp)`  
@@ -59,7 +59,7 @@
 **`Longsword`** `(Heart, Near, Momentum 2, 2 slots, Sharp, One or Two Handed, Damage: Attacking Stat Modifier (One Handed), 1d10 + Attacking Stat Modifier (Two handed), 30gp)`  
 *`Ability: Murderstroke`*`. You make a weapon attack that deals Blunt damage equal to your Heart Modifier. Your critical chance for this ability increases by 20 against enemies wearing heavy armor.`
 
-**`Claymore`** `(Heart, Near, Momentum 1, 2 slot, Sharp, Two Handed, Damage: 2d10 + Attacking Stat Modifier, 50gp)`  
+**`Claymore`** `(Heart, Near, Momentum 1, 2 slots, Sharp, Two Handed, Damage: 2d10 + Attacking Stat Modifier, 50gp)`  
 *`Ability: Cleave`*`. If your next attack hits, you deal sharp damage to all enemies in the Near Rank equal to your Heart modifier.`
 
 **`Mace`** `(Heart, Near, Momentum 2, 1 slot, Blunt, One Handed, Damage: Attacking Stat Modifier, 30gp)`  
