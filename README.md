@@ -20,10 +20,11 @@ bun run dev
 run persistence also requires a server-only `POCKETBASE_SERVICE_TOKEN`; never
 place it in a public environment variable.
 
-The run collections migration under `pocketbase/pb_migrations/` is intentionally
-unapplied. Read `docs/pocketbase.md` before enabling the alpha persistence
-collections or PocketBase batch API. `FIVEFOLD_TEST_MODE` is only for local
-Playwright and must never be enabled in deployment.
+The reviewed, reversible run-collection migrations under
+`pocketbase/pb_migrations/` are applied to the public alpha. Read
+`docs/pocketbase.md` before changing the persistence collections or PocketBase
+batch API. `FIVEFOLD_TEST_MODE` is only for local Playwright and must never be
+enabled in deployment.
 
 ## Verify
 
@@ -42,7 +43,7 @@ Project work runs these commands through `brain session run -- ...` so Brain rec
 - `src/lib/game/` — pure deterministic command engine.
 - `src/lib/server/` — server-only integrations, including PocketBase.
 - `src/routes/` — SvelteKit UI and server route boundaries.
-- `pocketbase/pb_migrations/` — reviewed, reversible, unapplied run schema.
+- `pocketbase/pb_migrations/` — reviewed, reversible public-alpha run schema.
 - `docs/game-rules/` — byte-preserved canonical Fivefold v0.8 Beta import.
 - `docs/adaptations/` — explicit dungeon-crawler decisions; never canonical rules.
 - `docs/reference/fivefold-table/` — legacy table-era implementation references.

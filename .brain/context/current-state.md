@@ -1,5 +1,5 @@
 ---
-updated: '2026-07-29T08:06:48Z'
+updated: '2026-07-29T16:17:43Z'
 ---
 
 # Current State
@@ -32,7 +32,7 @@ Plan CLI v0.1.28 cannot derive execution slices directly from the GitHub-owned s
 
 Issue #1 implementation is active on
 `codex/single-player-procedural-st-bozma-roguelike`. Current checks pass lint,
-Svelte/TypeScript, 24 unit/integration tests, production build, and the
+Svelte/TypeScript, 25 unit/integration tests, production build, and the
 signed-out → test-auth → five-class creation → movement/combat →
 refresh/resume → logout Playwright flow. The shared `reference-100756` seed
 reaches victory with all five templates while exercising a signature feature.
@@ -43,11 +43,8 @@ selected canonical class features, fixed solo enemies/progression/finale,
 sanitized projections, Discord OAuth routes, versioned run APIs, idempotent
 repository behavior, locked run collections, and a reversible PocketBase
 migration. Production persistence uses a private service token; Discord user
-tokens cannot call run collections directly. No remote schema or deployment
-change has been made.
+tokens cannot call run collections directly. PR #2 merged the implementation; follow-up PR #3 contains the migration-safety fixes, corrective PocketBase migrations, and deployment runbook updates. The public alpha is live at `https://five-fold-game.vercel.app`; its Vercel production environment uses the canonical public PocketBase URL and a sensitive long-lived static superuser token. The public PocketBase instance has batch requests enabled, the initial and zero-value migrations applied, locked run collections, and verified backup `pre_fivefold_web_20260729t091243z.zip`. A disposable live user probe verified Discord sign-in, run creation, reload/resume, persistence, and cascade cleanup. The run-history composite-index migration is pending final review and public application.
 
 ## Next Product Step
 
-Finish the durable context audit, then commit, push, and open the ready Issue #1
-PR. Remote PocketBase schema changes, service-token provisioning, and deployment
-remain separately unauthorized.
+Verify and apply the run-history composite-index migration, then merge follow-up PR #3. After that, tune the playable public-alpha experience from tester feedback.

@@ -1,3 +1,7 @@
+---
+updated: '2026-07-29T16:17:43Z'
+---
+
 # PocketBase Boundary
 
 ## Configuration
@@ -6,7 +10,7 @@ Server environment:
 
 ```sh
 POCKETBASE_URL=https://fivefold-pb.jimmymcbride.dev
-POCKETBASE_SERVICE_TOKEN=<long-lived _superusers impersonation token>
+POCKETBASE_SERVICE_TOKEN=<long-lived _superusers static auth token>
 ```
 
 The values are documented in `.env.example`. Local `.env` files are ignored.
@@ -36,8 +40,10 @@ Rules:
 
 ## Run Persistence
 
-The approved but unapplied migration is
-`pocketbase/pb_migrations/1785309600_create_fivefold_runs.js`. It creates:
+The public-alpha persistence schema is defined by the initial
+`pocketbase/pb_migrations/1785309600_create_fivefold_runs.js` migration and the
+corrective `1785316900_fix_run_zero_values_and_history.js` and
+`1785341801_add_run_history_index.js` migrations. Together they create:
 
 - `game_runs` — one owner-scoped active snapshot, seed/RNG cursor, status, and
   monotonic version.
@@ -52,25 +58,32 @@ access. The unique `(run, resulting_version)` action index makes two batches
 from the same version mutually exclusive; the losing request reloads the latest
 snapshot as stale.
 
-Before applying the migration to the alpha instance:
+The initial and zero-value migrations were applied on 2026-07-29 after a
+verified PocketBase backup named
+`pre_fivefold_web_20260729t091243z.zip`. Batch requests are enabled with 50
+requests, a 3-second timeout, and locked collection API rules. The first
+corrective migration permits the legitimate zero values used by initial run
+versions and RNG cursors, permits first-command expected version zero, and adds
+the `run_records.created` timestamp used for history ordering. The follow-up
+migration replaces the owner-only run-record index with `(owner, created)` to
+match the history filter and sort query. All migrations are verified in both
+directions before public application.
 
-1. Export the remote collections snapshot and settings.
-2. Confirm PocketBase batch requests are enabled with at least 3 requests and a
-   short transaction timeout.
-3. Generate a long-lived `_superusers` impersonation token for the application
-   server, store it as `POCKETBASE_SERVICE_TOKEN`, and confirm it never enters a
-   rendered page or log.
-4. Apply the migration in a non-production copy and run owner-isolation,
-   duplicate-command, stale-version, terminal immutability, and rollback tests.
-5. Apply to alpha only with explicit authorization.
-
-Rollback deletes `run_records`, `run_actions`, then `game_runs`. The prior remote
-snapshot is the recovery source if any unrelated setting changes are needed.
+Rollback removes the history index first, then the zero-value correction, and
+finally deletes `run_records`, `run_actions`, and `game_runs` through the
+initial migration rollback. The verified public backup is the recovery source
+if unrelated settings or records must also be restored.
 
 The production route treats missing collections as a sealed ledger and does not
 fall back to client-authoritative state. `FIVEFOLD_TEST_MODE=true` enables an
 in-memory repository and test-only login route for Playwright only; never set it
 in a deployed environment.
+
+## Public Alpha
+
+The production application is [https://five-fold-game.vercel.app](https://five-fold-game.vercel.app). Vercel stores the canonical PocketBase URL and sensitive service token in the production environment; local `.env` mirrors those values with mode `0600`. Discord OAuth redirects to `https://five-fold-game.vercel.app/auth/callback`.
+
+A disposable impersonated-user probe verified live run creation, resume, PocketBase persistence, and cascade cleanup without enabling test mode.
 
 ## Safe Health Check
 
