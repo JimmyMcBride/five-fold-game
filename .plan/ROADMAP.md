@@ -8,9 +8,9 @@ No product roadmap is approved. Current work is discovery for the Fivefold web t
 
 ## MVP Spec
 
-Goal: approve and execute one bounded spec for a single-player, procedural, run-based St. Bozma dungeon.
+Goal: execute one approved bounded spec for a single-player, procedural, run-based St. Bozma dungeon.
 
-Summary: promoted as GitHub Issue #1, `Single-player procedural St. Bozma roguelike`; readiness is clarifying and implementation is not yet approved.
+Summary: GitHub Issue #1, `Single-player procedural St. Bozma roguelike`, is approved. Public alpha access uses Discord OAuth without invites; players create a named character from one of five fixed templates for each run.
 
 ## Foundation
 
@@ -20,8 +20,8 @@ Summary: bootstrap foundation exists; future implementation requires approved sp
 
 ## Ordering Notes
 
-- Review and approve GitHub Issue #1 before implementation.
 - Derive execution slices from the approved spec instead of creating an additional planning hierarchy.
+- Keep remote PocketBase schema mutation and deployment separately gated.
 
 ## Parking Lot
 
