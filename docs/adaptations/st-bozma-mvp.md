@@ -1,3 +1,7 @@
+---
+updated: '2026-07-29T21:09:44Z'
+---
+
 # St. Bozma Dungeon Adaptations
 
 This file classifies rules-sensitive behavior for both persisted content
@@ -40,6 +44,10 @@ versions. `st-bozma-mvp-v1` remains the historical Issue #1 contract.
 - Initiative ties favor the solo player.
 - The server keeps version-guarded snapshots, idempotent command IDs,
   append-only action history, and one immutable terminal summary.
+- Enemy target selection is a reversible presentation adaptation. The UI defaults
+  to the first eligible Near enemy, breaks ties by encounter order, and preserves
+  a still-eligible selection across turns. Eligibility and submitted payloads
+  continue to come only from server-provided `LegalCommand` entries.
 
 ## V2 Reconciliation
 
