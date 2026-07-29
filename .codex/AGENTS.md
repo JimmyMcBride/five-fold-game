@@ -1,0 +1,37 @@
+## Brain
+
+<!-- brain:begin agent-integration-codex -->
+
+Brain-managed project context for `codex` lives under `.brain/`.
+
+Brain is intended for AI agents, not as a human-operated project dashboard.
+
+Read these when Brain context is relevant:
+
+- `.brain/policy.yaml`
+- `.brain/context/overview.md`
+- `.brain/context/architecture.md`
+- `.brain/context/workflows.md`
+- `.brain/context/memory-policy.md`
+- `.brain/context/current-state.md`
+
+When working with Brain-managed repos:
+
+- start with `brain prep --task "<task>"` when no validated session is active
+- if a validated session already exists, run `brain prep`
+- use `brain context compile --task "<task>"` when you need the lower-level packet compiler directly
+- use the `brain` CLI for project-local memory and context workflows
+- run `brain context audit` after meaningful architecture, config, CI, deploy, test, or docs-surface changes
+- use `brain session run -- <command>` for required verification commands
+- if finish blocks, review the promotion suggestions or run `brain distill --session --dry-run`
+- finish with `brain session finish`
+
+Post-adoption enrichment:
+
+- treat generated context as starter context, not complete repo memory
+- scan repo structure, docs, manifests, entrypoints, tests, CI, config, and deployment surfaces
+- update AGENTS.md, docs, or .brain notes with durable project-specific findings
+- add focused .brain/resources notes for architecture, workflows, risks, and references that do not belong in top-level templates
+- keep generated managed blocks refreshable; put hand-authored findings in Local Notes or dedicated notes
+
+<!-- brain:end agent-integration-codex -->

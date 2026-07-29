@@ -1,0 +1,19 @@
+# Package Managers
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
+bun.lock
+bun.lockb
+
+# Miscellaneous
+/static/
+/.svelte-kit/
+/.brain/session.json
+/.brain/sessions/
+/.brain/state/
+/.plan/.meta/
+/docs/game-rules/
+/docs/reference/fivefold-table/combat-roadmap.md
+/docs/reference/fivefold-table/combat-i0-rules-lock-spec.md
+/docs/reference/fivefold-table/combat-i1-data-foundation-spec.md
+/docs/reference/fivefold-table/combat-i3-initiative-turn-loop-spec.md
