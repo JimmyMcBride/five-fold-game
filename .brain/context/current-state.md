@@ -1,5 +1,5 @@
 ---
-updated: '2026-07-29T09:28:28Z'
+updated: '2026-07-29T09:31:31Z'
 ---
 
 # Current State
@@ -43,8 +43,8 @@ selected canonical class features, fixed solo enemies/progression/finale,
 sanitized projections, Discord OAuth routes, versioned run APIs, idempotent
 repository behavior, locked run collections, and a reversible PocketBase
 migration. Production persistence uses a private service token; Discord user
-tokens cannot call run collections directly. PR #2 contains the implementation and corrective PocketBase migration. The public alpha is live at `https://five-fold-game.vercel.app`; its Vercel production environment uses the canonical public PocketBase URL and a sensitive long-lived static superuser token. The public PocketBase instance has batch requests enabled, both run migrations applied, locked run collections, and verified backup `pre_fivefold_web_20260729t091243z.zip`. A disposable live user probe verified run creation, reload/resume, persistence, and cascade cleanup.
+tokens cannot call run collections directly. PR #2 merged the implementation; follow-up PR #3 contains the migration-safety fix, corrective PocketBase migration, and deployment runbook updates. The public alpha is live at `https://five-fold-game.vercel.app`; its Vercel production environment uses the canonical public PocketBase URL and a sensitive long-lived static superuser token. The public PocketBase instance has batch requests enabled, both run migrations applied, locked run collections, and verified backup `pre_fivefold_web_20260729t091243z.zip`. A disposable live user probe verified run creation, reload/resume, persistence, and cascade cleanup.
 
 ## Next Product Step
 
-Complete one interactive Discord login through the production callback, then merge PR #2 after final review. The Discord authorization endpoint accepts the production callback and shows no redirect configuration error; completing the account consent exchange requires an interactive Discord session.
+Complete one interactive Discord login through the production callback, then merge follow-up PR #3 after final review. The Discord authorization endpoint accepts the production callback and shows no redirect configuration error; completing the account consent exchange requires an interactive Discord session.
