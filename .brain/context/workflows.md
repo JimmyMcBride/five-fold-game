@@ -1,5 +1,5 @@
 ---
-updated: '2026-07-29T08:06:48Z'
+updated: '2026-07-29T17:59:35Z'
 ---
 
 # Workflows
@@ -24,6 +24,13 @@ Plan specs are canonical execution contracts. In GitHub source mode, use Plan as
 
 `package.json` owns Bun commands. `tsconfig.json` is the SvelteKit TypeScript project config and must stay aligned with generated `.svelte-kit/tsconfig.json` behavior.
 
+Canonical rule imports use one pinned markdown export:
+
+- `bun run rules:import -- <export.md>` regenerates all sections and the
+  manifest after identity/hash/boundary validation.
+- `bun run rules:verify -- <export.md>` performs the same validation without
+  writing and must be clean after import.
+
 ## Required Verification
 
 Run through Brain:
@@ -35,7 +42,9 @@ Run through Brain:
 - `brain session run -- bun run test:e2e` for browser-flow changes
 
 The curated `reference-100756` engine smoke must continue to reach victory with
-all five class templates and exercise each template’s signature feature.
+all five v1 class templates and exercise each template’s signature feature. V2
+uses pinned per-class seeds in `reference-runs.spec.ts`; every class must replay
+identically to victory and exercise its signature feature.
 
 ## Closeout
 

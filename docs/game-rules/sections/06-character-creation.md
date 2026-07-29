@@ -9,8 +9,9 @@
 `5. Choose a Class. Choose how your character works, mechanically speaking. This will give you a number of abilities, passives, and maneuvers. It will also tell you what armor and weapons your character can wield, listed as “Armor Training” and “Weapon Training” respectively.`   
 `6. Allocate your stat points. Characters start with their stats in the following array: 10, 20, 30, 40, 50, before species features are applied. Distribute 50 more points as you would like between the five different attributes, but no stat can start above 70 for a level 1 character.`  
 `7. Choose your first perk. Pick a perk that you meet the requirements for. This is in addition to your Origin perk, which is granted by your class.`  
-`8. Roll starting gold. Each character starts with 2d10 + (1d10 * their Voice Modifier) gold.`   
-`9. Pick starting weapons and armor. A character starts with any one or two weapons, and a full set of armor or clothing.`
+`8. Roll starting health. Your maximum health is equal to your Heart Stat + (1d10 + your Heart Modifier).`  
+`9. Roll starting gold. Each character starts with 2d10 + (1d10 * their Voice Modifier) gold.`   
+`10. Pick starting weapons and armor. A character starts with any one or two weapons, and a full set of armor or clothing.`
 
 # 
 

@@ -10,8 +10,8 @@
 6. `By Default, enemies can only make a weapon attack or use an ability on their turn, unless their stat block indicates otherwise.`   
 7. `When the GM reaches 30 momentum, they pick a maneuver from one of the enemies that is in the fight.`
 
-**`NEW MOMENTUM RULES`**  
-`At the start of each round, the GM rolls a number of d10s for each monster, which is listed in each Monster’s stat block next to their name. On any roll of a 10, the GM gets to use a monster’s maneuver on that monster’s turn. Additional 10s in the pool can either trigger other monster’s maneuvers or grant a monster an extra weapon attack on their turn, or sometimes empower a monster’s maneuver.`
+**`GM MOMENTUM RULES`**  
+`At the start of each round, the GM rolls a number of d10s for each monster, which is listed in each Monster’s stat block next to their name. On any roll of a 10, the GM gets to use a monster’s maneuver on that monster’s turn. Additional 10s in the pool can either trigger other monster’s maneuvers or grant a monster an extra weapon attack on their turn, or sometimes empower a monster’s maneuver. The GM rolls 1 more D10 for every round the combat encounter continues. This is called the Escalation Die number.` 
 
 # ANGELS
 
@@ -23,7 +23,7 @@
 `Sin gained: 3`  
 `Size: 4`  
 `Health: 280`  
-`Reflex: 74`
+`Reflex: 7`
 
 `Resistant to Holy and Dark damage; Sharp and Blunt from weapons that don’t have any scrolls.`  
 `Immune to Poison Damage and effects caused by poison features.`
@@ -32,8 +32,8 @@
 
 `Used Radiance and Temple Guardian on its turn. The Throne fights to the death, and will prefer demons, occultists, or targets with the most sin.`
 
-* **`Maneuver: Exile.`** `The throne attempts to Banish a target that is taunted by its Temple Guardian ability. The taunted target must make a Soul Roll or become banished until the end of their own next turn, upon which they take 1d10 flame damage. Additional 10s on the momentum die can be spent to add an additional d10 to the damage.`    
-* **`Weapon Attack: Radiance.`** `2d10 + 7 Holy, Far.`  
+* **`Maneuver: Exile.`** `The throne attempts to Banish a target that is taunted by its Temple Guardian ability. The taunted target must make a Soul Roll or become banished until the end of their own next turn, upon which they take 3d10 flame damage. Additional 10s on the momentum die can be spent to add an additional d10 to the damage.`    
+* **`Weapon Attack: Radiance.`** `3d10 + 7 Holy, Far.`  
 * **`Ability: Temple Guardian.`** `The Throne forces itself in front of a creature. The target must roll Soul or become taunted until the end of the Throne’s next turn. Targets that are taunted by this ability are vulnerable to holy damage. Wrath viced characters have disadvantage on the roll to resist this ability.`
 
 # BANDITS
@@ -44,7 +44,7 @@
 
 `Level 1 Humanoid (Greed)`  
 `Size: 2`  
-`Health: 30`   
+`Health: 27`   
 `Reflex: 4`
 
 *`A simple mook out for your money.`*
@@ -57,20 +57,20 @@
 
 `Level 1 Humanoid (Wrath)`  
 `Size: 2`  
-`Health: 105`  
+`Health: 35`  
 `Reflex: 2`
 
 *`A tough thug out for your money.`*
 
 * **`Maneuver: Mug`**`. All Bandits make a weapon attack on the player character with the most gold on the near rank. These attacks deal 6 Sharp damage each.`    
 * **`Weapon Attack: Club`**`. 1d10 + 4 Blunt. Near.`  
-* **`Ability: Taunt`**`. The bandit makes a weapon attack that deals 4 Blunt damage on a hit. The character must make a Mind Defensive roll or become Taunted by the Bruiser until the end of their next turn. Characters with the Wrath Vice have disadvantage against this ability.` 
+* **`Ability: Taunt`**`. The bandit makes a weapon attack that deals 4 Blunt damage on a hit. The character must make a Mind roll or become Taunted by the Bruiser until the end of their next turn. Characters with the Wrath Vice have disadvantage against this ability.` 
 
 # **BANDIT ARCHER (1d10)**
 
 `Level 1 Humanoid (Greed)`  
 `Size: 2`  
-`Health: 36`  
+`Health: 27`  
 `Reflex: 4`
 
 *`A bandit with a bow, out for your money.`*
@@ -85,15 +85,17 @@
 
 `Level 3 Humanoid (Pride)`  
 `Size: 2`  
-`Health: 265`  
+`Health: 115`  
 `Reflex: 6`
 
 *`A bandit leader, out for your money.`*
 
-`1 Weapon Attack and 1 ability per turn. The chief will try to Wrangle the weakest (or least agile) looking character and bind them. They will use Pin Down to try and get tanks or high-damage melee characters away from the front lines, and will always pummel a bound character.` 
+`2 AP.`
+
+`The chief will try to Wrangle the weakest (or least agile) looking character and bind them. They will use Pin Down to try and get tanks or high-damage melee characters away from the front lines, and will always pummel a bound character.` 
 
 * **`Maneuver: Pin Down`**`. The Bandit Chief points at a single target on the near rank and gives an attack order. If that character is still on the Near rank by the start of the next round, the character must make a Heart or Reflex Defensive Roll or become Stunned, Silenced and Bound until the Bandit Chief’s next attack. A Pride Viced Character must make a Mind or Soul defensive roll in order to switch ranks once they have been targeted by this ability.`   
-* **`Weapon Attack: Longsword`**`. 1d10 + 12 Sharp, Near.`  
+* **`Weapon Attack: Longsword`**`. 2d10 + 12 Sharp, Near.`  
 * **`Ability: Wrangle`**`. The bandit chief plows through the ranks and grabs someone. One character on the Far Rank must make a Reflex defensive roll or they are moved to the Near rank and Bound until the end of the Chief’s next turn.`  
 * **`Ability`**`: Pummel. The Bandit Chief makes a weapon attack against a target that deals 12 Sharp damage. If the Character is Bound, they take an additional 12 Blunt damage as the Bandit Chief lays into them. A Pride viced character takes an additional 1d10 damage from the weapon attack.`
 
@@ -105,7 +107,7 @@
 
 `Level 1 Beast (Wrath)`  
 `Size: 1`  
-`Health: 20`  
+`Health: 18`  
 `Reflex: 7`
 
 `Vulnerable to Flame Damage.`
@@ -122,7 +124,7 @@
 
 `Level 2 Beast (Gluttony)`  
 `Size: 4`  
-`Health: 85`  
+`Health: 65`  
 `Reflex: 0`
 
 *`Milkmice are very large rodents that breed quickly, fatten nicely, and resist the cold. They have become a perfect livestock animal, and sustain themselves on the various fungi that still grow in the long winter. They resemble very fat  chinchillas with much wider, webbed feet for supporting their weight on the snow. Their fur is used for clothing, their fat can be burned as fuel, and their milk can be rendered into a hard cheese that lasts for ages. Their meat tastes quite gamey, though.`*  
@@ -157,7 +159,7 @@
 
 `Level 1 Beast (Envy)`  
 `Size: 2`  
-`Health: 54`  
+`Health: 34`  
 `Reflex: 6`
 
 *`Despite their names, Winged Wolves are not related to canines at all. They are actually a very large relative of a bat that has been grounded through years of adaptation. These bat-like creatures have wing-like webbing that connects their powerful front legs to their body, a ferocious set of claws on each of their feet. They are pack hunters that hunt in groups called “cauldrons”, and their preferred prey are the large insects that wander the ice, but will turn to hunting other beasts and humanoids if they become desperate enough. They make their dens in caves, and their cauldrons can range from about a dozen to several hundred, depending on the health of the local ecosystem.`*
@@ -166,7 +168,7 @@
 
 * **`Passive: Echolocation.`** `Winged Wolves can target hidden creatures.`  
 * **`Maneuver: Cauldron Tactics`**`. The Winged Wolves mark one target with their echolocation. That target has disadvantage on Defensive Rolls until each Winged Wolf in the encounter has taken a turn.`   
-* **`Weapon Attack: Claws`**`. 2d10 + 4 Sharp, Near.`  
+* **`Weapon Attack: Claws`**`. 2d10 + 6 Sharp, Near.`  
 * **`Ability: Siphoning Bite`**`. The Winged Wolf makes a weapon attack that deals 4 Sharp damage on a hit, and heals it for 1d10. An Envy Vice player must make a Heart Defensive roll if they were hit, or else they also lose a Recovery Die.`
 
 # DEMONS
@@ -183,12 +185,12 @@
 
 *`Hooded masses of flesh that lumber through the halls of castle and cobbled streets, searching for light to extinguish. This demonic thing, with a fleshy, leperous body made up of hundreds of fingers, has malformed itself around a bell-like dome of steel that rests mouth-downward where its head should be. It searches for flames, and puts them out by snuffing them with its metal maw.`*
 
-`1 Weapon attack and 1 ability per turn.` 
+`2 AP.` 
 
 `Unless taunted, it will attack the closest character with a lightsource.` 
 
 * **`Maneuver: Extinguish`**`. One target must make a Reflex Defensive roll. On a failure, they take 14 blunt damage and have 1d10 momentum removed. Additional 10s on the momentum die can be spent to increase the momentum loss by another d10. Any lightsource the target is carrying is snuffed out.`  
-* **`Weapon Attack: Dome`**`. 3d10 + 14 Blunt.`  
+* **`Weapon Attack: Dome`**`. 4d10 + 14 Blunt, Near.`  
 * **`Ability: Dreadful Ring`**`. The Douter rings its bell-like head, and uses the tone to violently shake the foes that attempt to strike it. Until the end of its next turn, characters that damage it with Near Weapons take 2d10 dark damage, each time. Sloth viced characters are Taunted when the Douter uses this ability, and gain 2 Sin if they do not attack it.`  
 * **`Ability: Snuff.`** `The Douter attempts to trap a target with its mass of fingers and domed face. One target must make a Reflex Defensive roll, and on a failure, any lightsource they are carrying is snuffed out, and the target takes 3d10 Dark Damage and is Stunned. They remain Stunned and continue to take damage in this way until they are freed by rolling a Hard Success on a Heart or Reflex defensive roll at the end of their turn. The Douter will also release a character if it takes more than 35 flame damage in a single turn. A character that did not use an action or ability on its last turn has disadvantage on the first defensive roll of this ability.` 
 
@@ -237,7 +239,7 @@
 `Level 3 Demon (Gluttony)`  
 `Sin Absolved: 9`  
 `Size: 3`  
-`Health: 258`  
+`Health: 168`  
 `Reflex: 3`
 
 `Resistant to Blunt and Poison damage.`  
@@ -248,9 +250,9 @@
 `Zeboul will use their Choice Cut ability first, typically targeting the character with the highest Soul stat. Once a character is under that effect, they will gore it until they can use their Forbidden Feast maneuver.` 
 
 * **`Passive: Hungry for Blood.`** `The Zeboul deals double damage against targets with temporary health.`  
-* **`Maneuver: Forbidden Feast.`** `If any targets have lost a chunk of flesh from the Choice Cut ability, the Zeboul or one of its allies can eat the flesh and heal for 2d10 + 2 hit points. If there is a Gluttony viced character in the encounter, they must hard succeed on a Soul or Mind defensive roll, or they consume the flesh first. They are healed 2d10 + 2, but immediately gain 5 sin.`   
-* **`Weapon Attack: Gore.`** `2d10 + 7 Sharp, near.`  
-* **`Ability: Choice Cut.`** `The Zeboul makes a weapon attack against a target that deals 10 Sharp damage on a hit. If this ability damages the target’s true health (and not only temporary hit points), the target must succeed on a Heart Roll, or a chunk of their flesh will fall off at the end of their next turn, and they will lose 1 Recovery Die. Restoring any amount of health before then will nullify this ability.` 
+* **`Maneuver: Forbidden Feast.`** `If any targets have lost a chunk of flesh from the Choice Cut ability, the Zeboul or one of its allies can eat the flesh and heal for 2d10 + 10 hit points. If there is a Gluttony viced character in the encounter, they must hard succeed on a Soul or Mind defensive roll, or they consume the flesh first. They are healed 2d10 + 10, but immediately gain 5 sin.`   
+* **`Weapon Attack: Gore.`** `2d10 + 9 Sharp, near.`  
+* **`Ability: Choice Cut.`** `The Zeboul makes a weapon attack against a target that deals 14 Sharp damage on a hit. If this ability damages the target’s true health (and not only temporary hit points), the target must succeed on a Heart Roll, or a chunk of their flesh will fall off at the end of their next turn, and they will lose 1 Recovery Die. Restoring any amount of health before then will nullify this ability.` 
 
 # SCORCHED
 
@@ -260,7 +262,7 @@
 
 `Level 1 Humanoid (Envy)`  
 `Size: 2`  
-`Health: 44`   
+`Health: 36`   
 `Reflex: 4`
 
 *`A Raider from the tundra, wielding a spear. They are probably hungry.`*
@@ -269,13 +271,13 @@
 
 * **`Maneuver: Priority Target`**`. One Raider makes a weapon attack. On a hit, it deals additional damage equal to the target’s heart modifier. If the target is Envy Viced, any effect from abilities that they are benefiting from ends.`   
 * **`Weapon Attack: Spear`**`. 2d10 + 5 Sharp, Near.`  
-* **`Ability: Bloody Battle`**`. The Scorched rolls a momentum die.`
+* **`Ability: Bloody Battle`**`. The Scorched rolls a number of momentum dice equal to the escalation die.`
 
 # **SCORCHED FLAMECALLER (1d10)**
 
 `Level 2 Humanoid (Pride)`  
 `Size: 2`  
-`Health: 36`  
+`Health: 32`  
 `Reflex: 3`
 
 *`A spiritual guide or shaman for a clan. They interpret and predict the movements of their tribe’s flame cloud, and advise the clan’s Khan on when and where to move. They are typically female, and are often the wives of the Khan, but not always.`*
@@ -284,13 +286,13 @@
 
 * **`Maneuver: Firebreath`**`. The near rank is primed for a gout of flames as the Flamecaller inhales. At the top of the next round, any characters in the near rank must make a reflex defensive roll or take 3d10 Flame damage on a failure. On a normal success, they take half damage, and on a hard success, they take no damage. Additional 10s on the momentum die can be spent to add another d10 to the damage.`  
 * **`Weapon Attack: Sling`**`. 1d10 + 5 blunt, Far.`  
-* **`Ability: Lure`**`. The Flamecaller attempts to lure a character to overextend. The character must succeed on a Mind roll or they are moved to the near rank. Pride viced characters are also bound by this ability.` 
+* **`Ability: Lure`**`. The Flamecaller attempts to lure a character to overextend. The character must succeed on a Mind roll or they are moved to the near rank. Pride viced characters are also bound by this ability until the end of their next turn.` 
 
 # **SCORCHED KHAN (2d10)**
 
 `Level 3 Humanoid (Lust)`  
 `Size: 2`  
-`Health: 265`  
+`Health: 185`  
 `Reflex: 6`
 
 *`Khans are the tribal leaders of each clan. They act as judges when conflict arises within the clan, and have final authority on all decisions. Most Khans fought the previous Khan for their position by issuing a challenge for one-on-one combat. The Khans are almost always male, and always have first picks on husbands or wives. They are also in charge of distributing food, supplies and wealth across the tribe, and while it is expected that they get the largest cut of each, fairness is an important trait for a Khan to exhibit.`*   
@@ -299,7 +301,7 @@
 * **`Maneuver: Killing Blow`**`. The Khan makes a weapon attack. If the target is below half their total hit points, they have disadvantage on the defensive roll against this attack. Additional 10s on the momentum die can be spent to increase the damage of this maneuver by 1d10.`  
 * **`Weapon Attack: Spear`**`. 2d10 + 6 sharp, Near.`  
 * **`Ability: Kidnap`**`. The Khan throws a net at a target of their choice. The target must make a Reflex Defensive roll, or they are Stunned and Bound. At the end of each of the character’s turns after this, they repeat the roll and break free from the net on a success. Lust viced characters must roll a Hard success on this ability to avoid it or break free. An ally on the same rank can spend their entire turn to break a netted character free. If the Khan flees while a netted character is on the near rank, that character is kidnapped and goes with them.`  
-* **`Ability: Fires of Protection.`** `The Khan chooses one of its allies. The next time that ally is damaged, the character that damaged them must make a Reflex Defensive roll or take 6 flame damage.` 
+* **`Ability: Fires of Protection.`** `The Khan chooses one of its allies. The next time that ally is damaged, the character that damaged them takes 6 flame damage.` 
 
 # 14 HEADS
 

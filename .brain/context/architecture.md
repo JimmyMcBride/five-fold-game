@@ -1,5 +1,5 @@
 ---
-updated: '2026-07-29T08:06:48Z'
+updated: '2026-07-29T17:59:35Z'
 ---
 
 # Architecture
@@ -20,9 +20,10 @@ Core modules:
 - `src/lib/game/content/` — fixed class/enemy/room data and dungeon generation
 - `projection.ts` — sanitized player-facing run projection
 
-`scripts/` is reserved for disposable development utilities; no script is part
-of the application runtime or verification contract unless promoted into
-`package.json`.
+`scripts/import-game-rules.mjs` is a promoted verification utility. It pins the
+v0.8.5 Google Docs export identity, byte count, and SHA-256, then validates and
+splits all 17 canonical sections without normalizing source bytes. Other
+scripts remain disposable unless promoted into `package.json`.
 
 ## Application Boundary
 
@@ -33,6 +34,12 @@ request. `src/lib/server/pocketbase.ts` owns URL resolution, sanitized sessions,
 and the request-scoped service-token client for locked run collections.
 `src/lib/server/run-repository.ts` owns active runs, atomic command commits,
 idempotency, resume, and history.
+
+Game snapshots dispatch explicitly by `contentVersion`.
+`st-bozma-v0.8.5-v2` is the new-run default and stores seeded health rolls plus
+combat AP/used-action identities. `st-bozma-mvp-v1` retains its historical
+state shape and resolver behavior. Persisted v2 snapshots are decoded and
+validated before replay; unknown or incomplete versions do not mutate.
 
 ## Persistence Direction
 
@@ -45,4 +52,8 @@ remote alpha instance.
 
 ## Rules And Content
 
-Canonical rules live only in `docs/game-rules/`. Explicit browser adaptations live in `docs/adaptations/` or approved Plan specs. Table-era files under `docs/reference/fivefold-table/` are legacy references, not current product specs.
+Canonical rules live only in `docs/game-rules/`. The current corpus is the
+byte-verified v0.8.5 export; its manifest records full and per-section hashes.
+Explicit browser adaptations live in `docs/adaptations/` or approved Plan
+specs. Table-era files under `docs/reference/fivefold-table/` are legacy
+references, not current product specs.

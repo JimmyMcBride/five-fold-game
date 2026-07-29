@@ -1,14 +1,19 @@
 # Fivefold Game Rules
 
-This folder contains the canonical imported markdown copy of the Fivefold v0.8 Beta rulebook, split into major sections for easier agent and human lookup.
+This folder contains the canonical imported markdown copy of the Fivefold v0.8.5
+Beta rulebook, split into major sections for easier agent and human lookup.
 
 ## Source
 
-- Google Doc: [Fivefold (v0.8 Beta)](https://docs.google.com/document/d/1JTO4JWvfuGg8itgcIA0ffoL_5BAZpKo93J2hgp-Oe3I/edit?tab=t.0)
+- Google Doc: [Fivefold (v0.8.5 Beta)](https://docs.google.com/document/d/1JTO4JWvfuGg8itgcIA0ffoL_5BAZpKo93J2hgp-Oe3I/edit?tab=t.0)
 - Document ID: `1JTO4JWvfuGg8itgcIA0ffoL_5BAZpKo93J2hgp-Oe3I`
 - Tab: `t.0` / `Fivefold`
-- Imported: `2026-05-27T18:16:32-05:00`
-- Split strategy: major section headings from the Google Docs markdown export
+- Source modified: `2026-06-30T05:45:19.904Z`
+- Imported: `2026-07-29T17:45:00.000Z`
+- Export bytes: `217152`
+- Export SHA-256:
+  `0a2b64f9ad9e83b3916152e6e4928ec6824c594e63987371ec970ee7ea77cadd`
+- Split strategy: ordered byte boundaries at the 17 major section headings
 
 ## Table Of Contents
 
@@ -34,9 +39,25 @@ This folder contains the canonical imported markdown copy of the Fivefold v0.8 B
 
 - [sections/](./sections/): source-canonical rulebook sections.
 - [source-manifest.json](./source-manifest.json): import metadata and source-to-section mapping.
+- [v0.8-to-v0.8.5-diff.md](./v0.8-to-v0.8.5-diff.md): classified
+  source and runtime reconciliation.
+
+## Reproduce Or Verify
+
+Download the Google Docs markdown export, then run:
+
+```sh
+bun run rules:import -- /path/to/fivefold-v0.8.5.md
+bun run rules:verify -- /path/to/fivefold-v0.8.5.md
+```
+
+Both commands stop if the byte count, full-export hash, section order, or any
+required boundary differs from the pinned source. Verification also compares
+every generated section and the manifest without writing files.
 
 ## Notes
 
 - Treat files in `sections/` as source-canonical game rules.
+- The 17 section files concatenate to the exact pinned export bytes.
 - The section files intentionally preserve Google Docs markdown export formatting, including backticks, bold markers, escaped punctuation, and table formatting.
 - Do not rewrite or normalize the imported rule text unless a future task explicitly asks for a derivative reference format.

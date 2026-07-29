@@ -25,6 +25,8 @@ test('public visitor signs in, creates a character, moves, and resumes the run',
 	await expect(page.getByText('Magi // Level 1')).toBeVisible();
 	await page.getByRole('button', { name: /Climb toward the shrine/ }).click();
 	await expect(page.getByText('Hostile //', { exact: false })).toBeVisible();
+	await expect(page.getByText('2 / 2 AP')).toBeVisible();
+	await expect(page.getByRole('button', { name: /Dodge with Reflex/ })).toBeVisible();
 
 	const roomHeading = await page.locator('#room-title').textContent();
 	await page.reload();
@@ -35,6 +37,8 @@ test('public visitor signs in, creates a character, moves, and resumes the run',
 	await expect(page.getByText(/HP, (Near|Far)/)).toBeVisible();
 	await page.getByRole('button', { name: /^Black Cloud/ }).click();
 	await expect(page.getByText(/Black Cloud roll/)).toBeVisible();
+	await expect(page.getByText('1 / 2 AP')).toBeVisible();
+	await expect(page.getByText(/Used: Black Cloud/)).toBeVisible();
 	const bolt = page.getByRole('button', { name: /^Bolt/ });
 	if (await bolt.isVisible()) {
 		await bolt.click();

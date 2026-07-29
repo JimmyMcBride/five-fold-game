@@ -201,3 +201,41 @@
 
 * `Began to work on the Triumphs system`
 
+`5/29/26`
+
+* `Changed Fira Infernox to Igniens Infernus for grammatical reasons.`
+
+`6/22/26 (v0.8.5)`
+
+* `Rebalanced health (lowered) and damaged (raised) of several enemies.`  
+* `Added Escalation Die to GM combat rules.`  
+* `Defensive rolls are now called Block and Dodge. Blocking uses heart and reduces your damage taken by heart mod/double heart mod/all, and dodge avoids damage completely/adds 1 momentum/adds 2 momentum, on normal/hard/crit successes.`  
+* `Action economy now uses Action Points (AP). Players have 2 AP that can be spent on actions or abilities interchangeably, as long as they do not use the same action or ability twice in one turn. (Exception being the Concentrate Action).`  
+* `Better clarified summoning rules and the Concentration Action.`  
+* `Added DEATHBLOWS to the game. Rolling a nat 1 on a damaging action or ability kills its target immediately.`   
+* `Weapon attacks now almost always gain momentum.`  
+* `When there are no enemies in the Near Rank, anyone on the opposing side can close the distance without spending AP.`  
+* `All Vices are generally less punishing, and do not rob a player of their agency to play their character how they want.`   
+* `All Specializations require 80 in their stat.`  
+* `Reworked the mind perk Summon Furies to deal AoE damage rather than banish a target.`  
+* `Scout’s Cling to Shadows no longer requires a hard success.`  
+* `Reworked the Scout spec Archer into Warden.`
+
+`6/25/26`
+
+* `Buffed Blocking. On a critical block roll, you can immediately make a weapon attack.` 
+
+`6/28/26`
+
+* `Dual wielding changed to just allow you to use your AP to attack twice.`  
+* `Bandit Bruiser’s health lowered to 35.`  
+* `Bandit Chief’s health lowered to 115.`  
+* `Added the Shove action and Shove Maneuver for everyone.`  
+* `Buffed Surprise Attack to scale with reflex mod`  
+* `Buffed Cling to Shadows to keep you hidden for your full turn.`  
+* `Added two new Origin perks to give Mind and Voice builds more options for defense: Misdirection and Calculated Risk.`  
+  **`Misdirection`**`. (Passive) When you take damage, you can spend half your current momentum to halve the damage.`   
+  **`Calculated Risk.`** `(Passive) When you take damage, you can choose to reduce the damage by your Mind Modifier. You gain 1 Sin when you do this.`  
+* `Stat caps are now 85, lowered from 90.`  
+* `Health is no longer only your heart stat. Health is equal to your Heart Stat + (1d10 + your Heart Modifier) per level. As part of leveling up, you now roll 1d10 + your Heart Modifier and increase your maximum health accordingly.` 
+

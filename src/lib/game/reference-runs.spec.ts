@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { getLegalCommands, resolveCommand } from './engine';
 import type { ClassName, GameState } from './model';
 import { createRng } from './rng';
-import { createInitialState } from './state';
+import { CONTENT_VERSION, createInitialState, LEGACY_CONTENT_VERSION } from './state';
 
 const signatures: Record<ClassName, string> = {
 	Warrior: 'aegis-raised',
@@ -12,9 +12,18 @@ const signatures: Record<ClassName, string> = {
 	Versant: 'tongues-of-fire'
 };
 
-function play(seed: string, className: ClassName): { state: GameState; signature: boolean } {
-	let state = createInitialState({ seed, className, name: `${className} Reference` });
-	const rng = createRng(`${seed}:commands`);
+function play(
+	seed: string,
+	className: ClassName,
+	contentVersion = LEGACY_CONTENT_VERSION
+): { state: GameState; signature: boolean } {
+	let state = createInitialState({
+		seed,
+		className,
+		name: `${className} Reference`,
+		contentVersion
+	});
+	const rng = createRng(`${seed}:commands`, state.rngCursor);
 	let signature = false;
 
 	for (let step = 0; step < 240 && state.status === 'active'; step += 1) {
@@ -62,7 +71,10 @@ function play(seed: string, className: ClassName): { state: GameState; signature
 							candidate.command.type === 'use-feature' &&
 							preferredFeatures[className].includes(candidate.command.featureId)
 					) ??
-					legal.find((candidate) => candidate.command.type === 'attack') ??
+					legal.find(
+						(candidate) => candidate.command.type === 'attack' && candidate.economy !== 'maneuver'
+					) ??
+					legal.find((candidate) => candidate.command.type === 'close-distance') ??
 					legal.find((candidate) => candidate.command.type === 'end-turn');
 			}
 		}
@@ -87,5 +99,23 @@ describe('curated deterministic reference run', () => {
 		}
 
 		expect(turns).toEqual([34, 36, 50, 24, 31]);
+	});
+
+	it('replays all five v2 templates deterministically through a curated combat smoke', () => {
+		const expectedSeeds = {
+			Warrior: 'v2-Warrior-3',
+			Scout: 'v2-Scout-0',
+			Priest: 'v2-Priest-424',
+			Magi: 'v2-Magi-2',
+			Versant: 'v2-Versant-0'
+		};
+		for (const className of ['Warrior', 'Scout', 'Priest', 'Magi', 'Versant'] as const) {
+			const seed = expectedSeeds[className];
+			const first = play(seed, className, CONTENT_VERSION);
+			const replay = play(seed, className, CONTENT_VERSION);
+			expect(first).toEqual(replay);
+			expect(first.signature, `${className} should exercise its signature feature`).toBe(true);
+			expect(first.state.status, `${className} should defeat Barnabe`).toBe('victory');
+		}
 	});
 });

@@ -16,6 +16,7 @@ import type {
 } from './model';
 import type { RandomSource } from './rng';
 import { modifier, rollDice, rollStat } from './rules';
+import { CONTENT_VERSION, LEGACY_CONTENT_VERSION, SUPPORTED_CONTENT_VERSIONS } from './state';
 
 export interface CommandResolution {
 	state: GameState;
@@ -40,8 +41,28 @@ function activeEnemies(state: GameState): EnemyState[] {
 	return state.encounter?.enemies.filter((enemy) => enemy.hp > 0) ?? [];
 }
 
+function isV2(state: GameState): boolean {
+	return state.contentVersion === CONTENT_VERSION;
+}
+
+function hasSupportedContentVersion(state: GameState): boolean {
+	return (SUPPORTED_CONTENT_VERSIONS as readonly string[]).includes(state.contentVersion);
+}
+
+function hasValidContentState(state: GameState): boolean {
+	if (!hasSupportedContentVersion(state)) return false;
+	if (!isV2(state)) return true;
+	if (!Array.isArray(state.player.healthRolls)) return false;
+	if (!state.encounter) return true;
+	return (
+		Number.isInteger(state.encounter.turn.actionPoints) &&
+		Array.isArray(state.encounter.turn.usedActionIds)
+	);
+}
+
 function targetableEnemies(state: GameState): EnemyState[] {
 	const enemies = activeEnemies(state);
+	if (isV2(state)) return enemies;
 	const guardedBarnabe = enemies.some((enemy) => enemy.id === 'barnabe' && enemy.guarded);
 	if (!guardedBarnabe) return enemies;
 	return enemies.filter((enemy) => enemy.id !== 'barnabe');
@@ -61,7 +82,10 @@ function equippedWeapon(state: GameState): Weapon {
 	);
 }
 
-function economyAvailable(turn: CombatTurnState, economy: Economy): boolean {
+function economyAvailable(turn: CombatTurnState, economy: Economy, actionId?: string): boolean {
+	if (turn.actionPoints !== undefined && economy !== 'maneuver') {
+		return turn.actionPoints > 0 && !(actionId && turn.usedActionIds?.includes(actionId));
+	}
 	if (economy === 'action') return !turn.actionUsed;
 	if (economy === 'ability') return !turn.abilityUsed;
 	return turn.maneuverAvailable;
@@ -115,7 +139,7 @@ export function getLegalCommands(state: GameState): LegalCommand[] {
 		command: { type: 'inspect' }
 	};
 
-	if (state.status !== 'active') return [];
+	if (state.status !== 'active' || !hasValidContentState(state)) return [];
 
 	if (state.phase === 'event' || state.phase === 'loot') {
 		return [inspect, ...roomOptions(state)];
@@ -157,37 +181,87 @@ export function getLegalCommands(state: GameState): LegalCommand[] {
 	for (const stat of allowedDefenses(state)) {
 		commands.push({
 			id: `defense:${stat}`,
-			label: `Defend with ${capitalize(stat)}`,
-			detail: defenseDetail(stat),
+			label:
+				isV2(state) && stat === 'heart'
+					? 'Block with Heart'
+					: isV2(state) && stat === 'reflex'
+						? 'Dodge with Reflex'
+						: `Defend with ${capitalize(stat)}`,
+			detail: defenseDetail(state, stat),
 			command: { type: 'set-defense', stat }
 		});
 	}
 
-	if (!turn.actionUsed) {
+	if (economyAvailable(turn, 'action', `weapon:${weapon.id}`)) {
 		for (const enemy of weaponTargets(state)) {
 			commands.push({
 				id: `attack:${enemy.instanceId}`,
 				label: `Attack ${enemy.name}`,
 				detail: `${weapon.name} // ${capitalize(weapon.stat)} // ${capitalize(weapon.rank)}`,
-				command: { type: 'attack', targetId: enemy.instanceId },
+				command: {
+					type: 'attack',
+					targetId: enemy.instanceId,
+					...(isV2(state) ? { economy: 'action' as const } : {})
+				},
 				economy: 'action'
 			});
 		}
 	}
 
-	if (!turn.actionUsed) {
+	if (economyAvailable(turn, 'action', 'shift-rank')) {
 		commands.push({
 			id: 'shift-rank',
 			label: `Shift to ${state.player.rank === 'near' ? 'Far' : 'Near'}`,
 			detail: 'Spend your Action to switch ranks.',
-			command: { type: 'shift-rank' },
+			command: {
+				type: 'shift-rank',
+				...(isV2(state) ? { economy: 'action' as const } : {})
+			},
 			economy: 'action'
 		});
 	}
 
+	if (
+		isV2(state) &&
+		activeEnemies(state).length > 0 &&
+		!activeEnemies(state).some((enemy) => enemy.rank === 'near')
+	) {
+		commands.push({
+			id: 'close-distance',
+			label: 'Close distance',
+			detail: 'With no hostile holding Near, draw the enemy line Near for no AP.',
+			command: { type: 'close-distance' }
+		});
+	}
+
+	if (isV2(state) && state.player.rank === 'near') {
+		for (const enemy of activeEnemies(state).filter(
+			(candidate) => candidate.rank === 'near' && (candidate.sizeRank ?? 2) <= 5
+		)) {
+			if (economyAvailable(turn, 'action', 'shove')) {
+				commands.push({
+					id: `shove:action:${enemy.instanceId}`,
+					label: `Shove ${enemy.name}`,
+					detail: `Action // Heart ${enemy.sizeRank && enemy.sizeRank >= 3 ? '// Hard' : ''}`,
+					command: { type: 'shove', targetId: enemy.instanceId, economy: 'action' },
+					economy: 'action'
+				});
+			}
+			if (turn.maneuverAvailable) {
+				commands.push({
+					id: `shove:maneuver:${enemy.instanceId}`,
+					label: `Shove ${enemy.name}`,
+					detail: `Maneuver // Heart ${enemy.sizeRank && enemy.sizeRank >= 3 ? '// Hard' : ''}`,
+					command: { type: 'shove', targetId: enemy.instanceId, economy: 'maneuver' },
+					economy: 'maneuver'
+				});
+			}
+		}
+	}
+
 	const kit = getClassKit(state.player.className);
 	for (const feature of kit.features) {
-		if (!economyAvailable(turn, feature.economy)) continue;
+		if (!economyAvailable(turn, feature.economy, `feature:${feature.id}`)) continue;
 		if (state.player.usedFeatures.includes(feature.id)) continue;
 		if (feature.id === 'sacred-light' && state.player.effects.sacredMotes > 0) continue;
 		const offensive = [
@@ -225,6 +299,28 @@ export function getLegalCommands(state: GameState): LegalCommand[] {
 	}
 
 	if (turn.maneuverAvailable) {
+		if (isV2(state)) {
+			for (const enemy of weaponTargets(state)) {
+				commands.push({
+					id: `attack:maneuver:${enemy.instanceId}`,
+					label: `Maneuver attack ${enemy.name}`,
+					detail: `${weapon.name} // ${capitalize(weapon.stat)} // ${capitalize(weapon.rank)}`,
+					command: {
+						type: 'attack',
+						targetId: enemy.instanceId,
+						economy: 'maneuver'
+					},
+					economy: 'maneuver'
+				});
+			}
+			commands.push({
+				id: 'shift-rank:maneuver',
+				label: `Maneuver to ${state.player.rank === 'near' ? 'Far' : 'Near'}`,
+				detail: 'Use the basic maneuver to switch ranks without AP.',
+				command: { type: 'shift-rank', economy: 'maneuver' },
+				economy: 'maneuver'
+			});
+		}
 		commands.push({
 			id: 'feature:brace',
 			label: 'Brace',
@@ -249,12 +345,16 @@ function commandKey(command: GameCommand): string {
 		case 'move':
 			return JSON.stringify([command.type, command.exitId]);
 		case 'inspect':
-		case 'shift-rank':
+		case 'close-distance':
 		case 'patch-up':
 		case 'end-turn':
 			return command.type;
+		case 'shift-rank':
+			return JSON.stringify([command.type, command.economy ?? null]);
 		case 'attack':
-			return JSON.stringify([command.type, command.targetId]);
+			return JSON.stringify([command.type, command.targetId, command.economy ?? null]);
+		case 'shove':
+			return JSON.stringify([command.type, command.targetId, command.economy]);
 		case 'use-feature':
 			return JSON.stringify([command.type, command.featureId, command.targetId ?? null]);
 		case 'set-defense':
@@ -268,8 +368,15 @@ function allowedDefenses(state: GameState): DefenseStat[] {
 	return state.player.className === 'Priest' ? ['heart', 'reflex', 'soul'] : ['heart', 'reflex'];
 }
 
-function defenseDetail(stat: DefenseStat): string {
-	if (stat === 'heart') return 'Reduce damage on a success; negate it on a critical.';
+function defenseDetail(state: GameState, stat: DefenseStat): string {
+	if (!isV2(state)) {
+		if (stat === 'heart') return 'Reduce damage on a success; negate it on a critical.';
+		return 'Avoid the attack on a success.';
+	}
+	if (stat === 'heart')
+		return 'Block: reduce damage by Heart Modifier; a critical avoids all and counterattacks.';
+	if (stat === 'reflex')
+		return 'Dodge: avoid damage; hard and critical successes also gain momentum.';
 	return 'Avoid the attack on a success.';
 }
 
@@ -294,8 +401,18 @@ function trackQualifyingRoll(state: GameState, roll: RollResult): void {
 	}
 }
 
-function consumeEconomy(state: GameState, economy: Economy): void {
+function consumeEconomy(state: GameState, economy: Economy, actionId?: string): void {
 	if (!state.encounter) return;
+	if (state.encounter.turn.actionPoints !== undefined && economy !== 'maneuver') {
+		state.encounter.turn.actionPoints = Math.max(0, state.encounter.turn.actionPoints - 1);
+		if (actionId && !state.encounter.turn.usedActionIds?.includes(actionId)) {
+			state.encounter.turn.usedActionIds = [
+				...(state.encounter.turn.usedActionIds ?? []),
+				actionId
+			];
+		}
+		return;
+	}
 	if (economy === 'action') state.encounter.turn.actionUsed = true;
 	if (economy === 'ability') state.encounter.turn.abilityUsed = true;
 	if (economy === 'maneuver') state.encounter.turn.maneuverAvailable = false;
@@ -332,6 +449,10 @@ function defensiveAdjustment(state: GameState, stat: DefenseStat): number {
 	return adjustment;
 }
 
+function isNaturalOne(roll: RollResult): boolean {
+	return Math.min(...roll.rolls) === 1;
+}
+
 function enemyAttack(
 	state: GameState,
 	enemy: EnemyState,
@@ -364,13 +485,26 @@ function enemyAttack(
 	let damage = rollDice(rng, enemy.damageDice) + enemy.damageModifier;
 	if (enemy.id === 'zeboul' && state.player.temporaryHp > 0) damage *= 2;
 
+	let counterattack = false;
 	if (defense === 'heart' && roll.success) {
-		damage =
-			roll.band === 'critical'
-				? 0
-				: Math.max(0, damage - modifier(statValue) - (roll.band === 'hard' ? 2 : 0));
+		if (isV2(state)) {
+			damage =
+				roll.band === 'critical'
+					? 0
+					: Math.max(0, damage - modifier(statValue) * (roll.band === 'hard' ? 2 : 1));
+			counterattack = roll.band === 'critical';
+		} else {
+			damage =
+				roll.band === 'critical'
+					? 0
+					: Math.max(0, damage - modifier(statValue) - (roll.band === 'hard' ? 2 : 0));
+		}
 	} else if (roll.success) {
 		damage = 0;
+		if (isV2(state) && defense === 'reflex') {
+			if (roll.band === 'hard') addMomentum(state, 1);
+			if (roll.band === 'critical') addMomentum(state, 2);
+		}
 	}
 
 	if (state.player.className === 'Warrior') {
@@ -394,6 +528,22 @@ function enemyAttack(
 		)
 	);
 
+	if (
+		counterattack &&
+		enemy.hp > 0 &&
+		weaponTargets(state).some((target) => target.instanceId === enemy.instanceId)
+	) {
+		events.push(
+			event(
+				state,
+				'feature-resolved',
+				`Critical Block opens an immediate counterattack against ${enemy.name}.`,
+				'command'
+			)
+		);
+		resolveWeaponAttack(state, enemy, rng, events, { label: 'Block counterattack' });
+	}
+
 	if (state.player.hp === 0) {
 		endRun(state, 'death', 'Your light gutters. Death closes this run forever.', events);
 	}
@@ -410,6 +560,51 @@ function enemyPhase(state: GameState, rng: RandomSource, events: GameEvent[]): v
 			events.push(
 				event(state, 'feature-resolved', `${enemy.name} loses the turn while stunned.`, 'success')
 			);
+			continue;
+		}
+		if (enemy.id === 'barnabe' && isV2(state)) {
+			enemy.turnsTaken += 1;
+			if (enemy.turnsTaken % 2 === 1) {
+				events.push(
+					event(
+						state,
+						'feature-resolved',
+						'Barnabe cowers behind the line and gathers momentum for Decode.',
+						'neutral'
+					)
+				);
+				continue;
+			}
+			if (enemy.silencedTurns > 0) {
+				enemy.silencedTurns -= 1;
+				events.push(
+					event(
+						state,
+						'feature-resolved',
+						`${enemy.name} cannot utter Decode while silenced.`,
+						'success'
+					)
+				);
+				continue;
+			}
+			state.encounter.decodeCount += 1;
+			events.push(
+				event(
+					state,
+					'decode-advanced',
+					`Barnabe completes Decode ${state.encounter.decodeCount} of 3.`,
+					'danger'
+				)
+			);
+			if (state.encounter.decodeCount >= 3) {
+				endRun(
+					state,
+					'objective-failure',
+					'The third prayer opens the casket. Barnabe takes the saint, and the run is lost.',
+					events
+				);
+				return;
+			}
 			continue;
 		}
 		if (enemy.id === 'barnabe' && enemy.turnsTaken % 2 === 1) {
@@ -489,7 +684,11 @@ function enemyPhase(state: GameState, rng: RandomSource, events: GameEvent[]): v
 	if (state.status !== 'active' || !state.encounter) return;
 
 	const remainingEnemies = activeEnemies(state);
-	if (remainingEnemies.length > 0 && !remainingEnemies.some((enemy) => enemy.rank === 'near')) {
+	if (
+		!isV2(state) &&
+		remainingEnemies.length > 0 &&
+		!remainingEnemies.some((enemy) => enemy.rank === 'near')
+	) {
 		for (const enemy of remainingEnemies) enemy.rank = 'near';
 		events.push(
 			event(
@@ -505,6 +704,10 @@ function enemyPhase(state: GameState, rng: RandomSource, events: GameEvent[]): v
 	state.encounter.turn.playerTurnsCompleted += 1;
 	state.encounter.turn.actionUsed = false;
 	state.encounter.turn.abilityUsed = false;
+	if (state.encounter.turn.actionPoints !== undefined) {
+		state.encounter.turn.actionPoints = 2;
+		state.encounter.turn.usedActionIds = [];
+	}
 	state.player.effects.hidden = false;
 	if (
 		state.player.effects.guidanceExpiresAfterTurn !== null &&
@@ -537,10 +740,12 @@ function startEncounter(
 	rng: RandomSource,
 	events: GameEvent[]
 ): void {
-	const enemies = definitionIds.map((id, index) => createEnemy(id, String(index + 1)));
+	const enemies = definitionIds.map((id, index) =>
+		createEnemy(id, String(index + 1), state.contentVersion === LEGACY_CONTENT_VERSION)
+	);
 	const raiderPresent = enemies.some((enemy) => enemy.id === 'scorched-raider');
 	for (const enemy of enemies) {
-		if (enemy.id === 'barnabe') enemy.guarded = raiderPresent;
+		if (enemy.id === 'barnabe') enemy.guarded = !isV2(state) && raiderPresent;
 	}
 
 	state.encounter = {
@@ -552,7 +757,8 @@ function startEncounter(
 			playerTurnsCompleted: 0,
 			actionUsed: false,
 			abilityUsed: false,
-			maneuverAvailable: false
+			maneuverAvailable: false,
+			...(isV2(state) ? { actionPoints: 2, usedActionIds: [] } : {})
 		},
 		decodeCount: 0
 	};
@@ -683,23 +889,34 @@ function levelUp(state: GameState, rng: RandomSource, events: GameEvent[]): void
 
 	for (const stat of ['heart', 'reflex', 'soul', 'mind', 'voice'] as StatName[]) {
 		if (stat === kit.primaryStat) {
-			state.player.stats[stat] = Math.min(90, state.player.stats[stat] + 5);
+			state.player.stats[stat] = Math.min(isV2(state) ? 85 : 90, state.player.stats[stat] + 5);
 			continue;
 		}
 		const advancement = rng.int(1, 100);
 		if (advancement > state.player.stats[stat]) {
-			state.player.stats[stat] = Math.min(90, state.player.stats[stat] + 5);
+			state.player.stats[stat] = Math.min(isV2(state) ? 85 : 90, state.player.stats[stat] + 5);
 		}
 	}
 
 	const heartGain = state.player.stats.heart - oldHeart;
-	state.player.maxHp = state.player.stats.heart;
-	state.player.hp = Math.min(state.player.maxHp, state.player.hp + heartGain);
+	let hpGain = heartGain;
+	if (isV2(state)) {
+		const hpRoll = rng.int(1, 10);
+		state.player.healthRolls = [...(state.player.healthRolls ?? []), hpRoll];
+		hpGain += hpRoll + modifier(state.player.stats.heart);
+		state.player.maxHp += hpGain;
+		state.player.hp = Math.min(state.player.maxHp, state.player.hp + hpGain);
+	} else {
+		state.player.maxHp = state.player.stats.heart;
+		state.player.hp = Math.min(state.player.maxHp, state.player.hp + heartGain);
+	}
 	events.push(
 		event(
 			state,
 			'level-gained',
-			'Level 2. The primary stat rises by 5; seeded checks advance the others. Perk and specialization choices are deferred.',
+			isV2(state)
+				? `Level 2. Stats advance to the 85 cap and maximum health grows by ${hpGain}. Perk and specialization choices are deferred.`
+				: 'Level 2. The primary stat rises by 5; seeded checks advance the others. Perk and specialization choices are deferred.',
 			'command'
 		)
 	);
@@ -716,7 +933,7 @@ function defeatEnemy(
 	events.push(event(state, 'enemy-defeated', `${target.name} falls.`, 'success'));
 
 	const barnabe = state.encounter.enemies.find((enemy) => enemy.id === 'barnabe');
-	if (barnabe)
+	if (barnabe && !isV2(state))
 		barnabe.guarded = activeEnemies(state).some((enemy) => enemy.id === 'scorched-raider');
 
 	if (activeEnemies(state).length > 0) return;
@@ -774,6 +991,20 @@ function resolveWeaponAttack(
 		return false;
 	}
 
+	if (isV2(state) && isNaturalOne(roll)) {
+		events.push(
+			event(
+				state,
+				'attack-resolved',
+				`${options.label ?? weapon.name} rolls a natural 1: Deathblow against ${target.name}.`,
+				'success',
+				roll
+			)
+		);
+		applyDamageToEnemy(state, target, target.hp, rng, events);
+		return true;
+	}
+
 	let damage = weaponDamage(state, weapon, rng) + rollDice(rng, options.bonusDamageDice ?? 0);
 	damage = Math.max(1, Math.floor(damage * (options.damageScale ?? 1)));
 	if (roll.band === 'critical') damage *= 2;
@@ -809,7 +1040,7 @@ function resolveFeature(
 	);
 	const economy = command.featureId === 'brace' ? 'maneuver' : kitFeature?.economy;
 	if (!economy) return;
-	consumeEconomy(state, economy);
+	consumeEconomy(state, economy, `feature:${command.featureId}`);
 
 	switch (command.featureId) {
 		case 'brace':
@@ -879,7 +1110,11 @@ function resolveFeature(
 					(state.player.effects.sharpshooterTurns > 0 && equippedWeapon(state).rank === 'far');
 				resolveWeaponAttack(state, target, rng, events, {
 					advantage: true,
-					bonusDamageDice: alreadyHadAdvantage ? state.player.level : 0,
+					bonusDamageDice: alreadyHadAdvantage
+						? isV2(state)
+							? modifier(state.player.stats.reflex)
+							: state.player.level
+						: 0,
 					label: 'Surprise Attack'
 				});
 			}
@@ -1062,6 +1297,19 @@ function resolveFeature(
 				trackQualifyingRoll(state, roll);
 				const damage = modifier(state.player.stats.voice);
 				if (roll.success) {
+					if (isV2(state) && isNaturalOne(roll)) {
+						events.push(
+							event(
+								state,
+								'feature-resolved',
+								`Tongues of Fire rolls a natural 1: Deathblow against ${target.name}.`,
+								'success',
+								roll
+							)
+						);
+						applyDamageToEnemy(state, target, target.hp, rng, events);
+						return;
+					}
 					state.player.effects.tonguesBurn = damage;
 					applyDamageToEnemy(state, target, damage, rng, events);
 				}
@@ -1094,6 +1342,19 @@ function resolveSpellDamage(
 		adjustment: -(state.player.effects.guidance + state.player.effects.bless)
 	});
 	trackQualifyingRoll(state, roll);
+	if (isV2(state) && roll.success && isNaturalOne(roll)) {
+		events.push(
+			event(
+				state,
+				'feature-resolved',
+				`${label} rolls a natural 1: Deathblow against ${target.name}.`,
+				'success',
+				roll
+			)
+		);
+		applyDamageToEnemy(state, target, target.hp, rng, events);
+		return roll;
+	}
 	const damage = roll.success ? rollDice(rng, dice) + bonus : 0;
 	events.push(
 		event(
@@ -1236,7 +1497,11 @@ export function resolveCommand(
 				event(
 					state,
 					'command-rejected',
-					'That command is not legal in the current state. Nothing advances.',
+					!hasSupportedContentVersion(state)
+						? `Unsupported content version ${state.contentVersion}. Nothing advances.`
+						: !hasValidContentState(state)
+							? `Invalid snapshot for content version ${state.contentVersion}. Nothing advances.`
+							: 'That command is not legal in the current state. Nothing advances.',
 					'danger'
 				)
 			]
@@ -1274,7 +1539,15 @@ export function resolveCommand(
 			);
 			break;
 		case 'shift-rank':
-			if (next.encounter) next.encounter.turn.actionUsed = true;
+			if (next.encounter) {
+				if (isV2(next))
+					consumeEconomy(
+						next,
+						command.economy ?? 'action',
+						command.economy === 'maneuver' ? undefined : 'shift-rank'
+					);
+				else next.encounter.turn.actionUsed = true;
+			}
 			next.player.rank = next.player.rank === 'near' ? 'far' : 'near';
 			events.push(
 				event(
@@ -1285,10 +1558,53 @@ export function resolveCommand(
 				)
 			);
 			break;
+		case 'close-distance':
+			next.player.rank = 'near';
+			for (const enemy of activeEnemies(next)) enemy.rank = 'near';
+			events.push(
+				event(
+					next,
+					'rank-shifted',
+					'With no hostile holding Near, you close freely and draw the enemy line Near.',
+					'command'
+				)
+			);
+			break;
+		case 'shove': {
+			const target = activeEnemies(next).find(
+				(enemy) => enemy.instanceId === command.targetId && enemy.rank === 'near'
+			);
+			if (!target) break;
+			consumeEconomy(next, command.economy, 'shove');
+			const difficulty = (target.sizeRank ?? 2) >= 3 ? 'hard' : 'normal';
+			const roll = rollStat(rng, 'heart', next.player.stats.heart, { difficulty });
+			trackQualifyingRoll(next, roll);
+			if (roll.success) target.rank = 'far';
+			events.push(
+				event(
+					next,
+					'feature-resolved',
+					roll.success
+						? `Shove roll ${roll.kept} pushes ${target.name} to Far.`
+						: `Shove roll ${roll.kept} fails to move ${target.name}.`,
+					roll.success ? 'success' : 'danger',
+					roll
+				)
+			);
+			break;
+		}
 		case 'attack': {
 			const target = featureTarget(next, command.targetId);
 			if (target) {
-				if (next.encounter) next.encounter.turn.actionUsed = true;
+				if (next.encounter) {
+					if (isV2(next))
+						consumeEconomy(
+							next,
+							command.economy ?? 'action',
+							command.economy === 'maneuver' ? undefined : `weapon:${equippedWeapon(next).id}`
+						);
+					else next.encounter.turn.actionUsed = true;
+				}
 				resolveWeaponAttack(next, target, rng, events);
 			}
 			break;

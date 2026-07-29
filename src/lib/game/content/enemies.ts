@@ -1,6 +1,6 @@
 import type { EnemyDefinition, EnemyState } from '../model';
 
-export const ENEMIES: Record<string, EnemyDefinition> = {
+export const LEGACY_ENEMIES: Record<string, EnemyDefinition> = {
 	hellhornet: {
 		id: 'hellhornet',
 		name: 'Hellhornet',
@@ -51,8 +51,37 @@ export const ENEMIES: Record<string, EnemyDefinition> = {
 	}
 };
 
-export function createEnemy(definitionId: string, instanceSuffix = '1'): EnemyState {
-	const definition = ENEMIES[definitionId];
+export const ENEMIES: Record<string, EnemyDefinition> = {
+	...LEGACY_ENEMIES,
+	hellhornet: {
+		...LEGACY_ENEMIES.hellhornet,
+		maxHp: 18,
+		sizeRank: 1
+	},
+	'scorched-raider': {
+		...LEGACY_ENEMIES['scorched-raider'],
+		maxHp: 36,
+		sizeRank: 2
+	},
+	zeboul: {
+		...LEGACY_ENEMIES.zeboul,
+		damageModifier: 9,
+		sizeRank: 3
+	},
+	barnabe: {
+		...LEGACY_ENEMIES.barnabe,
+		maxHp: 75,
+		sizeRank: 2,
+		source: 'docs/game-rules/sections/16-st-bozmas-tomb.md'
+	}
+};
+
+export function createEnemy(
+	definitionId: string,
+	instanceSuffix = '1',
+	legacy = false
+): EnemyState {
+	const definition = (legacy ? LEGACY_ENEMIES : ENEMIES)[definitionId];
 	if (!definition) throw new Error(`Unknown enemy definition: ${definitionId}`);
 
 	return {

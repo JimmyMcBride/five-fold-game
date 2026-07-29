@@ -4,13 +4,15 @@
 
 `When combat begins, turn order is determined by everyone rolling a d10 and adding their Reflex Modifier to it, with the character that has the highest result moving first, sorted in descending order to the lowest Reflex.`
 
-## **TURNS IN COMBAT**
+## **TURNS IN COMBAT \- ACTION POINTS (AP)**
 
-`In combat, each character can use an Ability and take an Action. Actions can be weapon attacks, using items, or casting certain occult spells. Abilities are unique effects that typically do more than just damage. Both abilities and actions are granted by perks and class features.`
+`In combat, each character has two Action Points (AP). They can be used on Actions or abilities in any combination, as long as they don’t use the same action or ability twice in one turn. Once both Action points have been used, they end their turn. Actions can be weapon attacks, shoving a target to the far rank, using items, or casting certain occult spells. Abilities are unique effects that typically do more than just damage. Both abilities and actions are granted by perks and class features.`
 
 ## **SUMMONS & CONCENTRATION**
 
-`Some abilities will summon entities to help you in your plight. The summons have abilities that they can use on your turn. This does not take your ability. In order to maintain a Summon, you must use the Concentration action. When you do this, you roll your summoning stat, and on a failure, the Summon disappears. If you are damaged while concentrating on a summon, you must roll a hard success to continue to concentrate, at the time that you are damaged.`
+`Some abilities will summon entities to help you in your plight. The summons have abilities that they can use on your turn. This does not take your ability. In order to maintain a Summon, you must use the Concentration Action, which you use at the end of your turn, after your summons have taken their turn. When you do this, you roll the stat you used to summon, and on a failure, the Summon disappears. If you are damaged while concentrating on a summon, you must roll a hard success to continue to concentrate, at the time that you are damaged.`
+
+`This means that you can maintain as many summons as you have AP on your turn, unless otherwise specified.`
 
 ## **WEAPON ATTACKS**
 
@@ -18,15 +20,21 @@
 
 ## **DUAL WIELDING**
 
-`Any character can Dual Wield weapons, as long as they are both one-handed and the weapon held in the off hand has the Light property. A character can make an off-handed weapon attack as part of the attack action.`
+`Any character can Dual Wield weapons, as long as they are both one-handed and the weapon held in the off hand has the Light property. A character can make an off-handed weapon attack on their turn as an action even if they already attacked with the main weapon.`
 
 ## **CRITICAL HITS**
 
 `When you make a weapon attack or use an ability that requires a roll and deals damage, you land a critical hit if your roll is a success that is below your attacking stat's Modifier. Critical hits double all associated damage for that attack or ability. For example, if your Heart is 40, and you make an attack with a Claymore and roll a 3, you land a critical hit since your Heart Modifier is 4. You then roll 2d10 + your Heart Modifier, and double the result for damage.`
 
-## **AVOIDING DAMAGE & DEFENSIVE ROLLS**
+## **DEATHBLOWS**
 
-`When an enemy attacks you with a weapon attack, you can choose to roll either Reflex or Heart. If you roll Reflex and succeed, you dodge the attack and take no damage. If you roll Heart and succeed, you reduce the damage you took by your Heart Modifier on a normal success, an additional +2 on a hard success, and you avoid the damage altogether on a critical success.  Certain gear pieces and scrolls can further reduce the damage you take or increase your chance to dodge.`
+`If you roll a natural 1 on a weapon attack or a feature that deals damage, you deal a death blow to the enemy and instantly kill them. The GM may decide they do not die, but take a significant amount of damage to them instead, if the enemy is a pivotal boss, for instance.` 
+
+## **BLOCK & DODGE**
+
+`When an enemy attacks you with a weapon attack, you can choose to roll either Reflex or Heart. This is called Dodge and Block respectively. If you roll Reflex and succeed, you dodge the attack and take no damage on a normal success, you dodge it and gain 1 momentum on a hard success, and you dodge it and gain 2 momentum on a critical success.` 
+
+`If you roll Heart and succeed, you block and reduce the damage you took by your Heart Modifier on a normal success, double that amount on a hard success, and you avoid the damage altogether and can immediately counter attack the enemy by making a weapon attack against an enemy on a critical success. Certain gear pieces and scrolls can further reduce the damage you take or increase your chance to dodge.`
 
 `Sometimes, an enemy or the environment will cause you to make a Defensive roll to see if you are affected by an ability, spell, or some other hazard. These are not always Reflex or Heart, and in these cases, their conditions for avoiding damage or other effects are listed in their own entries. Typically, succeeding on a defensive roll is enough to shrug off the worst of an enemy's ability, but sometimes a hard success is required to avoid it entirely.`
 
@@ -52,13 +60,14 @@
 
 * **`Shift Rank.`** `You switch ranks.`  
 * **`Brace.`** `You can roll your next Defensive roll twice, and take the higher result.`  
-* **`Weapon Attack.`** `You make a single weapon attack. This weapon attack does not give you momentum.`
+* **`Weapon Attack.`** `You make a single weapon attack.`  
+* **`Shove.`** `You attempt to push a character back. Roll Heart, and on a success (hard if the creature is size 3 or higher), the target is pushed into the far rank. Some monsters likely cannot be pushed due to their size.`
 
 ## **RANGES AND RANKS**
 
-`While in combat, there are only two meaningful distances: the Near rank, and the Far rank. Weapons with the Far range can attack enemies that are Near or Far, but weapons with the Near range can only attack enemies that are Near, while the character wielding the weapon is also in the Near rank. If there are no more enemies in the Near rank, then all enemies automatically move to the Near rank at the start of the round, as the characters are able to close in on the once distant enemies.`
+`While in combat, there are only two meaningful distances: the Near rank, and the Far rank. Switching from Near to Far requires an Action, or the Switch Ranks Maneuver. Weapons with the Far range can attack enemies that are Near or Far, but weapons with the Near range can only attack enemies that are Near, while the character wielding the weapon is also in the Near rank. If there are no more enemies in the Near rank, then anyone can choose to close the distance on for no AP cost, causing the enemies to move onto the near rank.`
 
-`Player characters follow the same rules, and choose to start combat in either the Near or Far rank. Switching from Near to Far requires an Action, or the Switch Ranks Maneuver.`
+`Player characters follow the same rules, and choose to start combat in either the Near or Far rank.`
 
 ## **FLEEING**
 

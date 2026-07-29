@@ -690,6 +690,21 @@ input {
 	border-bottom: 1px solid var(--color-border);
 }
 
+.command-economy {
+	display: grid;
+	gap: var(--space-2xs);
+	padding: var(--space-sm) 0;
+	border-bottom: 1px solid var(--color-border);
+	color: var(--color-tallow);
+	font-family: var(--font-mono);
+	font-size: 0.68rem;
+}
+
+.command-economy span {
+	color: var(--color-ash);
+	overflow-wrap: anywhere;
+}
+
 .action-stack {
 	display: grid;
 	gap: 0.5rem;

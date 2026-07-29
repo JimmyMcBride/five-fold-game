@@ -1,10 +1,19 @@
+import { createHash } from 'node:crypto';
 import { describe, expect, it } from 'vitest';
 import type { GameCommand } from './commands';
 import { ENEMIES } from './content/enemies';
 import { getLegalCommands, resolveCommand } from './engine';
 import type { EncounterState } from './model';
 import { createRng, type RandomSource } from './rng';
-import { createInitialState } from './state';
+import {
+	createInitialState as createVersionedInitialState,
+	LEGACY_CONTENT_VERSION,
+	type NewRunInput
+} from './state';
+
+function createInitialState(input?: Partial<NewRunInput>) {
+	return createVersionedInitialState({ ...input, contentVersion: LEGACY_CONTENT_VERSION });
+}
 
 function sequenceRng(...initialValues: number[]): RandomSource {
 	const values = [...initialValues];
@@ -36,6 +45,16 @@ function commandOfType<T extends GameCommand['type']>(
 }
 
 describe('resolveCommand', () => {
+	it('pins the legacy v1 initial state and legal-command fixture', () => {
+		const state = createInitialState({ seed: 'legacy-fixture', className: 'Warrior' });
+		const fixture = JSON.stringify({ state, legal: getLegalCommands(state) });
+
+		expect(fixture).toHaveLength(3556);
+		expect(createHash('sha256').update(fixture).digest('hex')).toBe(
+			'9d78e3eb1b0183c23ed9787c988c0b34e1e467ab8fbbad3e450cefedf8350973'
+		);
+	});
+
 	it('enters the first seeded encounter without mutating the prior state', () => {
 		const initial = createInitialState({ seed: 'reference', className: 'Warrior' });
 		const move = commandOfType(initial, 'move');

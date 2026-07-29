@@ -1,7 +1,7 @@
 {
   "schema_version": 3,
-  "last_active_chain": "brainstorm/fivefold-web-text-dungeon-crawler-mvp",
-  "last_updated_at": "2026-07-29T05:43:12Z",
+  "last_active_chain": "brainstorm/update-canonical-game-rules-to-fivefold-v0-8-5",
+  "last_updated_at": "2026-07-29T16:22:07Z",
   "sessions": {
     "brainstorm/fivefold-web-text-dungeon-crawler-mvp": {
       "chain_id": "brainstorm/fivefold-web-text-dungeon-crawler-mvp",
@@ -16,6 +16,20 @@
       "next_action": "Continue with constraints and appetite.",
       "created_at": "2026-07-29T05:42:40Z",
       "updated_at": "2026-07-29T05:43:12Z"
+    },
+    "brainstorm/update-canonical-game-rules-to-fivefold-v0-8-5": {
+      "chain_id": "brainstorm/update-canonical-game-rules-to-fivefold-v0-8-5",
+      "brainstorm": "update-canonical-game-rules-to-fivefold-v0-8-5",
+      "current_stage": "brainstorm",
+      "current_cluster": 1,
+      "current_cluster_label": "vision-intake",
+      "stage_statuses": {
+        "brainstorm": "in_progress"
+      },
+      "summary": "Vision still missing. No supporting material recorded yet.",
+      "next_action": "Capture the user's vision in plain language.",
+      "created_at": "2026-07-29T16:22:07Z",
+      "updated_at": "2026-07-29T16:22:07Z"
     }
   }
 }
