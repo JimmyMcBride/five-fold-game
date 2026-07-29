@@ -1,5 +1,5 @@
 ---
-updated: '2026-07-29T09:28:28Z'
+updated: '2026-07-29T16:17:43Z'
 ---
 
 # PocketBase Boundary
@@ -40,7 +40,10 @@ Rules:
 
 ## Run Persistence
 
-The public alpha applies `pocketbase/pb_migrations/1785309600_create_fivefold_runs.js` and the corrective `1785316900_fix_run_zero_values_and_history.js`. Together they create:
+The public alpha applies the initial
+`pocketbase/pb_migrations/1785309600_create_fivefold_runs.js` migration and the
+corrective `1785316900_fix_run_zero_values_and_history.js` and
+`1785341801_add_run_history_index.js` migrations. Together they create:
 
 - `game_runs` — one owner-scoped active snapshot, seed/RNG cursor, status, and
   monotonic version.
@@ -55,9 +58,21 @@ access. The unique `(run, resulting_version)` action index makes two batches
 from the same version mutually exclusive; the losing request reloads the latest
 snapshot as stale.
 
-The public alpha migration was applied on 2026-07-29 after a verified PocketBase backup named `pre_fivefold_web_20260729t091243z.zip`. Batch requests are enabled with 50 requests, a 3-second timeout, and locked collection API rules. The corrective migration permits the legitimate zero values used by initial run versions and RNG cursors, permits first-command expected version zero, and adds the `run_records.created` timestamp used for history ordering. Both migrations passed isolated up and down verification before public application.
+The initial and zero-value migrations were applied on 2026-07-29 after a
+verified PocketBase backup named
+`pre_fivefold_web_20260729t091243z.zip`. Batch requests are enabled with 50
+requests, a 3-second timeout, and locked collection API rules. The first
+corrective migration permits the legitimate zero values used by initial run
+versions and RNG cursors, permits first-command expected version zero, and adds
+the `run_records.created` timestamp used for history ordering. The follow-up
+migration replaces the owner-only run-record index with `(owner, created)` to
+match the history filter and sort query. All migrations are verified in both
+directions before public application.
 
-Rollback applies the corrective migration down first, then deletes `run_records`, `run_actions`, and `game_runs` through the initial migration rollback. The verified public backup is the recovery source if unrelated settings or records must also be restored.
+Rollback removes the history index first, then the zero-value correction, and
+finally deletes `run_records`, `run_actions`, and `game_runs` through the
+initial migration rollback. The verified public backup is the recovery source
+if unrelated settings or records must also be restored.
 
 The production route treats missing collections as a sealed ledger and does not
 fall back to client-authoritative state. `FIVEFOLD_TEST_MODE=true` enables an
