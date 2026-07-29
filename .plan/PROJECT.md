@@ -32,4 +32,5 @@ Create a browser-based, text-first, turn-based Fivefold dungeon crawler where pl
 ## Notes
 
 - GitHub is planning source of truth.
-- User resolved MVP direction on 2026-07-29. Promotion preview still requires review before apply.
+- User resolved MVP direction on 2026-07-29.
+- Plan promoted the reviewed draft to GitHub Issue #1, `Single-player procedural St. Bozma roguelike`, on 2026-07-29. The spec remains clarifying until separately approved for implementation.

@@ -1,5 +1,22 @@
 {
-  "last_updated_at": "2026-07-29T05:42:16Z",
+  "repo": "JimmyMcBride/five-fold-game",
+  "repo_url": "https://github.com/JimmyMcBride/five-fold-game",
+  "default_branch": "main",
+  "last_updated_at": "2026-07-29T06:50:50Z",
   "stories": {},
-  "planning": {}
+  "planning": {
+    "single-player-procedural-st-bozma-roguelike": {
+      "slug": "single-player-procedural-st-bozma-roguelike",
+      "kind": "spec",
+      "title": "Single-player procedural St. Bozma roguelike",
+      "issue_number": 1,
+      "issue_url": "https://github.com/JimmyMcBride/five-fold-game/issues/1",
+      "remote_state": "open",
+      "readiness": "clarifying",
+      "ownership_mode": "github",
+      "entry_mode": "local_promotion",
+      "source_mode": "local",
+      "updated_at": "2026-07-29T06:50:50Z"
+    }
+  }
 }

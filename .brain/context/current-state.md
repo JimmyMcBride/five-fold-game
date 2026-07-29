@@ -1,5 +1,5 @@
 ---
-updated: '2026-07-29T06:28:33Z'
+updated: '2026-07-29T06:52:00Z'
 ---
 
 # Current State
@@ -20,9 +20,11 @@ Updated 2026-07-29.
 
 ## Plan
 
-Plan check passes and source mode is `github`. Brainstorm `fivefold-web-text-dungeon-crawler-mvp` now contains the owner-selected MVP direction plus one canonical promotion-map spec. Assessment returns `ready_single_spec` with high confidence. The preview proposes one clarifying GitHub spec, `Single-player procedural St. Bozma roguelike`; no GitHub planning promotion has been applied.
+Plan check passes and source mode is `github`. The owner confirmed promotion of brainstorm `fivefold-web-text-dungeon-crawler-mvp`. Plan created [GitHub Issue #1](https://github.com/JimmyMcBride/five-fold-game/issues/1), `Single-player procedural St. Bozma roguelike`, with the `enhancement` and `plan:spec` labels. The issue is open with clarifying readiness; implementation is not approved.
 
 The reviewed draft fixes the MVP at one seeded eight-room run, all five level-1 classes, deterministic room/combat/event resolution, immediate run-ending death at 0 HP, autosave/resume, and immutable prior-run summaries. It also names the solo rules adaptations, simplified Barnabe finale, persistence interfaces, acceptance criteria, and verification flows.
+
+Plan mirrored Issue #1 under `.plan/.meta/github.json`. A post-promotion preview still reports `action: create` for the local brainstorm despite that mirror, so do not reapply the brainstorm promotion until Plan reconciles the existing issue identity.
 
 ## Verification
 
@@ -30,4 +32,4 @@ Recorded passing checks: lint, Svelte/TypeScript check, 5 unit tests, production
 
 ## Next Product Step
 
-Ask the owner to review the exact promotion preview. Only after explicit confirmation, apply it with Plan; never create the GitHub issue or milestone manually. Implementation, PocketBase schema changes, and deployment remain separately unauthorized.
+Review Issue #1 and explicitly approve it before implementation. Remote PocketBase schema changes and deployment remain separately unauthorized.

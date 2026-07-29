@@ -6,11 +6,11 @@ Created: 2026-07-29T05:42:16Z
 
 No product roadmap is approved. Current work is discovery for the Fivefold web text dungeon crawler MVP.
 
-## MVP Spec Promotion
+## MVP Spec
 
-Goal: promote one bounded spec for a single-player, procedural, run-based St. Bozma dungeon.
+Goal: approve and execute one bounded spec for a single-player, procedural, run-based St. Bozma dungeon.
 
-Summary: product direction resolved in `fivefold-web-text-dungeon-crawler-mvp`; promotion remains preview-only until confirmed.
+Summary: promoted as GitHub Issue #1, `Single-player procedural St. Bozma roguelike`; readiness is clarifying and implementation is not yet approved.
 
 ## Foundation
 
@@ -20,8 +20,8 @@ Summary: bootstrap foundation exists; future implementation requires approved sp
 
 ## Ordering Notes
 
-- Preview one-spec promotion after maturity assessment.
-- Do not apply GitHub promotion until user confirms proposed scope.
+- Review and approve GitHub Issue #1 before implementation.
+- Derive execution slices from the approved spec instead of creating an additional planning hierarchy.
 
 ## Parking Lot
 
