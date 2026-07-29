@@ -22,6 +22,8 @@ updated: '2026-07-29T05:41:32Z'
 
 Plan specs are canonical execution contracts. In GitHub source mode, use Plan assess/promote and never create planning issues, labels, milestones, or projects manually unless Plan reports `manual_fallback_allowed=true`.
 
+`package.json` owns Bun commands. `tsconfig.json` is the SvelteKit TypeScript project config and must stay aligned with generated `.svelte-kit/tsconfig.json` behavior.
+
 ## Required Verification
 
 Run through Brain:

@@ -8,6 +8,8 @@ updated: '2026-07-29T05:41:32Z'
 
 `src/lib/game/` is pure TypeScript. It may not import Svelte, SvelteKit routes, HTTP, browser persistence, or PocketBase. `resolveCommand(state, command, rng)` returns a new state plus narration-ready domain events. Input state stays unchanged. Randomness is injected through a seeded `RandomSource`.
 
+`package.json` is the runtime manifest and canonical Bun script surface.
+
 Bootstrap modules:
 
 - `commands.ts` — player intent
@@ -15,7 +17,7 @@ Bootstrap modules:
 - `state.ts` — serializable run state
 - `rng.ts` — seeded deterministic source
 - `engine.ts` — command resolution
-- `content/rooms.ts` — specimen room content
+- `src/lib/game/content/rooms.ts` — specimen room content
 
 ## Application Boundary
 
