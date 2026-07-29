@@ -242,7 +242,7 @@ export function getLegalCommands(state: GameState): LegalCommand[] {
 				commands.push({
 					id: `shove:action:${enemy.instanceId}`,
 					label: `Shove ${enemy.name}`,
-					detail: `Action // Heart ${enemy.sizeRank && enemy.sizeRank >= 3 ? '// Hard' : ''}`,
+					detail: `Roll Heart. Success pushes the target from Near to Far.${enemy.sizeRank && enemy.sizeRank >= 3 ? ' Hard roll: Size 3+.' : ''}`,
 					command: { type: 'shove', targetId: enemy.instanceId, economy: 'action' },
 					economy: 'action'
 				});
@@ -251,7 +251,7 @@ export function getLegalCommands(state: GameState): LegalCommand[] {
 				commands.push({
 					id: `shove:maneuver:${enemy.instanceId}`,
 					label: `Shove ${enemy.name}`,
-					detail: `Maneuver // Heart ${enemy.sizeRank && enemy.sizeRank >= 3 ? '// Hard' : ''}`,
+					detail: `Roll Heart. Success pushes the target from Near to Far.${enemy.sizeRank && enemy.sizeRank >= 3 ? ' Hard roll: Size 3+.' : ''}`,
 					command: { type: 'shove', targetId: enemy.instanceId, economy: 'maneuver' },
 					economy: 'maneuver'
 				});

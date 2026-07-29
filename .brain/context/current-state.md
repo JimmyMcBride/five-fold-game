@@ -1,7 +1,6 @@
 ---
-updated: '2026-07-29T21:21:52Z'
+updated: "2026-07-29T23:17:22Z"
 ---
-
 # Current State
 
 Updated 2026-07-29.
@@ -41,6 +40,8 @@ radio targeting, selected-target command filtering, and responsive/reduced-motio
 coverage without moving legality into Svelte. Lint, Svelte/TypeScript, 57 unit
 tests, production build, and two Playwright flows pass; desktop/mobile manual QA
 is clean. PR #7 review feedback is resolved: unavailable reasons stay neutral without server metadata, pending target rows are visibly disabled, and HP progress bars expose exact accessible value text.
+
+A follow-up UI fix pins the active game shell to `100dvh` by `100vw`, confines overflow to the relevant tactical panels, and verifies a scroll-free 1920x1080 document. Class-template instructions have stronger separation, and server-provided Shove commands now explain the canonical Heart roll and Near-to-Far outcome.
 
 Issue #1 implementation is active on
 `codex/single-player-procedural-st-bozma-roguelike`. Current checks pass lint,
