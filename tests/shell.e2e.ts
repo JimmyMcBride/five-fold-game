@@ -12,6 +12,7 @@ test('public visitor signs in, creates a character, moves, and resumes the run',
 
 	await page.goto('/auth/test');
 	await expect(page.getByRole('heading', { name: 'Name the next delver' })).toBeVisible();
+	await expect(page.locator('.class-fieldset legend')).toHaveCSS('padding-top', '24px');
 	for (const className of ['Warrior', 'Scout', 'Priest', 'Magi', 'Versant']) {
 		await expect(page.getByText(className, { exact: true })).toBeVisible();
 	}
@@ -21,8 +22,20 @@ test('public visitor signs in, creates a character, moves, and resumes the run',
 	await page.getByText('Magi', { exact: true }).click();
 	await page.getByRole('button', { name: 'Begin run' }).click();
 
+	await page.setViewportSize({ width: 1920, height: 1080 });
 	await expect(page.getByRole('heading', { name: 'Monastery Grounds' })).toBeVisible();
 	await expect(page.getByText('Magi // Level 1')).toBeVisible();
+	await expect
+		.poll(() =>
+			page.evaluate(() => ({
+				documentHeight: document.documentElement.scrollHeight,
+				bodyHeight: document.body.scrollHeight,
+				viewportHeight: window.innerHeight
+			}))
+		)
+		.toEqual({ documentHeight: 1080, bodyHeight: 1080, viewportHeight: 1080 });
+	await expect(page.locator('.game-shell')).toHaveCSS('width', '1920px');
+	await expect(page.locator('.game-shell')).toHaveCSS('height', '1080px');
 	await page.getByRole('button', { name: /Climb toward the shrine/ }).click();
 	await expect(page.getByText('Hostile //', { exact: false })).toBeVisible();
 	await expect(page.getByText('2 / 2 AP')).toBeVisible();

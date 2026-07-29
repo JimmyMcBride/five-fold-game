@@ -240,6 +240,10 @@ describe('Fivefold v0.8.5 v2', () => {
 
 	it('supports Shove as an Action or Maneuver with size-based difficulty', () => {
 		let actionState = combatState('Warrior');
+		const actionShove = getLegalCommands(actionState).find(
+			(item) => item.command.type === 'shove' && item.command.economy === 'action'
+		);
+		expect(actionShove?.detail).toBe('Roll Heart. Success pushes the target from Near to Far.');
 		actionState = resolveCommand(actionState, command(actionState, 'shove'), sequenceRng(50)).state;
 		expect(actionState.encounter?.enemies[0].rank).toBe('far');
 		expect(actionState.encounter?.turn.actionPoints).toBe(1);
@@ -248,9 +252,13 @@ describe('Fivefold v0.8.5 v2', () => {
 		if (!maneuverState.encounter) throw new Error('Expected encounter.');
 		maneuverState.encounter.enemies[0] = createEnemy('zeboul');
 		maneuverState.encounter.turn.maneuverAvailable = true;
-		const maneuver = getLegalCommands(maneuverState).find(
+		const maneuverCommand = getLegalCommands(maneuverState).find(
 			(item) => item.command.type === 'shove' && item.command.economy === 'maneuver'
-		)?.command;
+		);
+		expect(maneuverCommand?.detail).toBe(
+			'Roll Heart. Success pushes the target from Near to Far. Hard roll: Size 3+.'
+		);
+		const maneuver = maneuverCommand?.command;
 		if (!maneuver || maneuver.type !== 'shove') throw new Error('Expected maneuver Shove.');
 		maneuverState = resolveCommand(maneuverState, maneuver, sequenceRng(40)).state;
 		expect(maneuverState.encounter?.enemies[0].rank).toBe('near');

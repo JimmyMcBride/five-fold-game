@@ -290,7 +290,7 @@ input {
 }
 
 .class-fieldset legend {
-	padding: 0 0 1rem;
+	padding: 1.5rem 0 1rem;
 	font-family: var(--font-mono);
 	color: var(--color-tallow);
 	font-size: 0.72rem;
@@ -388,9 +388,14 @@ input {
 }
 
 .game-shell {
-	position: relative;
+	position: fixed;
 	isolation: isolate;
-	min-height: 100vh;
+	inset: 0;
+	display: flex;
+	width: 100vw;
+	height: 100dvh;
+	min-height: 0;
+	flex-direction: column;
 	overflow: hidden;
 }
 
@@ -448,9 +453,10 @@ input {
 
 .game-grid {
 	display: grid;
+	flex: 1 1 auto;
 	grid-template-columns: minmax(15rem, 0.82fr) minmax(24rem, 2.1fr) minmax(18rem, 1fr);
 	width: min(100%, 94rem);
-	min-height: calc(100vh - 7.5rem);
+	min-height: 0;
 	margin: 0 auto;
 	border-inline: 1px solid var(--color-border);
 	background: var(--color-docket);
@@ -460,16 +466,17 @@ input {
 .command-panel,
 .scene {
 	min-width: 0;
+	min-height: 0;
 	padding: clamp(1rem, 2vw, 1.75rem);
 }
 
 .character-sheet {
+	overflow-y: auto;
 	border-right: 1px solid var(--color-border);
 	background: var(--color-grave);
 }
 
 .command-panel {
-	max-height: calc(100vh - 7.5rem);
 	overflow-y: auto;
 	border-left: 1px solid var(--color-border);
 	background: var(--color-grave);
@@ -584,6 +591,7 @@ input {
 .scene {
 	display: flex;
 	flex-direction: column;
+	overflow: hidden;
 	background: var(--color-docket);
 }
 
@@ -608,6 +616,8 @@ input {
 }
 
 .encounter-list {
+	min-height: 0;
+	overflow-y: auto;
 	border-block: 1px solid var(--color-clot);
 	background: color-mix(in oklch, var(--color-clot) 10%, var(--color-docket));
 }
@@ -713,7 +723,6 @@ input {
 .log-header {
 	display: flex;
 	justify-content: space-between;
-	margin-top: auto;
 	padding: 1rem 0 0.7rem;
 	border-bottom: 1px solid var(--color-border);
 	color: var(--color-ash);
@@ -722,12 +731,16 @@ input {
 
 .log-scroll {
 	position: relative;
+	display: flex;
+	min-height: 0;
+	flex: 1 1 auto;
 }
 
 .command-log {
 	display: flex;
+	min-height: 0;
+	flex: 1 1 auto;
 	flex-direction: column;
-	max-height: 20rem;
 	margin: 0;
 	padding: 0;
 	overflow-y: auto;
@@ -890,10 +903,29 @@ input {
 
 	.game-grid {
 		border-inline: 0;
+		overflow-y: auto;
 	}
 
+	.character-sheet,
 	.command-panel {
-		max-height: none;
+		overflow-y: visible;
+	}
+
+	.scene {
+		overflow: visible;
+	}
+
+	.encounter-list {
+		overflow-y: visible;
+	}
+
+	.log-scroll {
+		display: block;
+		flex: none;
+	}
+
+	.command-log {
+		max-height: 20rem;
 	}
 
 	.class-grid {
