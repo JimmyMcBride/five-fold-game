@@ -613,17 +613,76 @@ input {
 }
 
 .encounter {
+	position: relative;
+	display: grid;
+	grid-template-columns: auto minmax(0, 1fr);
+	align-items: stretch;
+	gap: 0.75rem;
+	padding: 0.85rem clamp(0rem, 3vw, 2.5rem);
+	border-bottom: 1px solid color-mix(in oklch, var(--color-clot) 45%, transparent);
+	cursor: pointer;
+	transition:
+		background-color 140ms ease-out,
+		border-color 140ms ease-out;
+}
+
+.encounter:hover:not(.target-unavailable) {
+	background: color-mix(in oklch, var(--color-tallow) 8%, transparent);
+}
+
+.encounter:has(input:focus-visible) {
+	outline: 2px solid var(--color-tallow);
+	outline-offset: -2px;
+}
+
+.encounter.target-selected {
+	background: color-mix(in oklch, var(--color-tallow) 14%, var(--color-docket));
+	border-color: var(--color-tallow);
+}
+
+.encounter.target-unavailable {
+	cursor: not-allowed;
+}
+
+.encounter input {
+	width: 1rem;
+	height: 1rem;
+	margin: 0.25rem 0 0;
+	accent-color: var(--color-tallow);
+}
+
+.enemy-copy {
+	display: grid;
+	gap: 0.7rem;
+	min-width: 0;
+}
+
+.enemy-heading,
+.enemy-vital {
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
 	gap: 1rem;
-	padding: 0.85rem clamp(0rem, 3vw, 2.5rem);
-	border-bottom: 1px solid color-mix(in oklch, var(--color-clot) 45%, transparent);
 }
 
-.encounter h3 {
+.enemy-heading strong {
+	display: block;
 	margin-top: 0.2rem;
+	font-family: var(--font-display);
 	font-size: 1.2rem;
+}
+
+.target-state {
+	color: var(--color-ash);
+	font-family: var(--font-mono);
+	font-size: 0.62rem;
+	font-weight: 600;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+}
+
+.target-selected .target-state {
+	color: var(--color-tallow);
 }
 
 .enemy-hp,
@@ -631,6 +690,19 @@ input {
 	color: var(--color-clot);
 	font-size: 0.7rem;
 	white-space: nowrap;
+}
+
+.enemy-health-track {
+	width: min(45%, 12rem);
+	height: 0.38rem;
+	background: var(--color-ledger);
+}
+
+.enemy-health-track > span {
+	display: block;
+	height: 100%;
+	background: var(--color-clot);
+	transition: width 180ms ease-out;
 }
 
 .decode-clock {
@@ -648,6 +720,10 @@ input {
 	font-size: 0.68rem;
 }
 
+.log-scroll {
+	position: relative;
+}
+
 .command-log {
 	display: flex;
 	flex-direction: column;
@@ -658,6 +734,31 @@ input {
 	font-size: 0.75rem;
 	line-height: 1.55;
 	list-style: none;
+}
+
+.log-scroll.has-unread .command-log {
+	padding-bottom: 3.5rem;
+}
+
+.log-jump {
+	position: absolute;
+	right: 0.5rem;
+	bottom: 0.5rem;
+	display: grid;
+	width: 2.75rem;
+	height: 2.75rem;
+	place-items: center;
+	border: 1px solid var(--color-tallow);
+	border-radius: 0;
+	background: var(--color-grave);
+	color: var(--color-tallow);
+	cursor: pointer;
+	box-shadow: 0 0 0 1px var(--color-grave);
+}
+
+.log-jump:hover {
+	background: var(--color-tallow);
+	color: var(--color-grave);
 }
 
 .command-log li {
@@ -845,6 +946,17 @@ input {
 
 	.command-log {
 		max-height: 24rem;
+	}
+
+	.enemy-heading,
+	.enemy-vital {
+		align-items: flex-start;
+		flex-direction: column;
+		gap: 0.45rem;
+	}
+
+	.enemy-health-track {
+		width: 100%;
 	}
 }
 

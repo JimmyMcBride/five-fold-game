@@ -1,5 +1,5 @@
 ---
-updated: '2026-07-29T17:59:35Z'
+updated: '2026-07-29T21:10:48Z'
 ---
 
 # Architecture
@@ -29,7 +29,14 @@ scripts remain disposable unless promoted into `package.json`.
 
 `src/routes/+page.svelte` is the Obsidian + Bone playable alpha. UI submits
 versioned commands and renders projections/events; it does not reimplement
-outcomes. `src/hooks.server.ts` creates one PocketBase identity client per
+outcomes.
+
+`src/lib/ui/` contains pure projection-to-view helpers for target ordering,
+selected-command filtering, and bounded health display math. It may consume game
+types and server-provided legal commands, but it does not own combat rules,
+browser state, or side effects.
+
+`src/hooks.server.ts` creates one PocketBase identity client per
 request. `src/lib/server/pocketbase.ts` owns URL resolution, sanitized sessions,
 and the request-scoped service-token client for locked run collections.
 `src/lib/server/run-repository.ts` owns active runs, atomic command commits,

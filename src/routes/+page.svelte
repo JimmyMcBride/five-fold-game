@@ -6,6 +6,12 @@
 	import { CLASS_KITS } from '$lib/game/content/classes';
 	import { CLASS_NAMES, STAT_NAMES, type ClassName, type RunSummary } from '$lib/game/model';
 	import type { RunProjection } from '$lib/game/projection';
+	import {
+		commandsForSelectedTarget,
+		eligibleEnemyIds,
+		healthProgress,
+		reconcileSelectedEnemy
+	} from '$lib/ui/combat';
 
 	let { data }: { data: PageData } = $props();
 	// svelte-ignore state_referenced_locally
@@ -19,13 +25,31 @@
 	let requestedSeed = $state('');
 	let pending = $state(false);
 	let errorMessage = $state<string | null>(null);
+	let selectedEnemyId = $state<string | null>(null);
+	let unreadLogEntries = $state(false);
+	let logElement = $state<HTMLOListElement | undefined>();
+	let selectionRunId: string | null = null;
+	let observedLogLength = 0;
+	let observedRunId: string | null = null;
+	let logUpdatePending = false;
+	let runResetPending = false;
+	let wasPinnedBeforeLogUpdate = true;
 
-	const hpPercent = $derived(
-		projection ? Math.round((projection.player.hp / Math.max(1, projection.player.maxHp)) * 100) : 0
+	const playerHealth = $derived(
+		healthProgress(projection?.player.hp ?? 0, projection?.player.maxHp ?? 0)
+	);
+	const eligibleTargetIds = $derived(
+		eligibleEnemyIds(projection?.enemies ?? [], projection?.commands ?? [])
+	);
+	const activeSelectedEnemyId = $derived(
+		selectedEnemyId && eligibleTargetIds.includes(selectedEnemyId) ? selectedEnemyId : null
+	);
+	const visibleCommands = $derived(
+		commandsForSelectedTarget(projection?.commands ?? [], activeSelectedEnemyId)
 	);
 	const commandGroups = $derived.by(() => {
 		const groups: [string, LegalCommand[]][] = [];
-		for (const command of projection?.commands ?? []) {
+		for (const command of visibleCommands) {
 			const key =
 				command.command.type === 'move'
 					? 'Passages'
@@ -39,6 +63,74 @@
 			else groups.push([key, [command]]);
 		}
 		return groups;
+	});
+
+	$effect(() => {
+		const runId = projection?.runId ?? null;
+		const enemies = projection?.enemies ?? [];
+		const enemyStillPresent =
+			selectedEnemyId !== null && enemies.some((enemy) => enemy.id === selectedEnemyId);
+
+		if (runId !== selectionRunId) {
+			selectedEnemyId = null;
+			selectionRunId = runId;
+		}
+
+		const nextTarget = reconcileSelectedEnemy(selectedEnemyId, enemies, projection?.commands ?? []);
+		if (nextTarget !== null && nextTarget !== selectedEnemyId) {
+			selectedEnemyId = nextTarget;
+		} else if (selectedEnemyId !== null && !enemyStillPresent) {
+			selectedEnemyId = null;
+		}
+	});
+
+	function logIsPinned() {
+		if (!logElement) return true;
+		return logElement.scrollHeight - logElement.scrollTop - logElement.clientHeight <= 24;
+	}
+
+	function scrollLogToLatest(behavior: ScrollBehavior = 'auto') {
+		logElement?.scrollTo({ top: logElement.scrollHeight, behavior });
+	}
+
+	function handleLogScroll() {
+		if (logIsPinned()) unreadLogEntries = false;
+	}
+
+	function jumpToLatest() {
+		const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+		scrollLogToLatest(reduceMotion ? 'auto' : 'smooth');
+		unreadLogEntries = false;
+	}
+
+	$effect.pre(() => {
+		const runId = projection?.runId ?? null;
+		const currentLogLength = log.length;
+		runResetPending = runId !== observedRunId;
+		logUpdatePending = !runResetPending && currentLogLength > observedLogLength;
+		if (logUpdatePending) wasPinnedBeforeLogUpdate = logIsPinned();
+	});
+
+	$effect(() => {
+		const runId = projection?.runId ?? null;
+		const currentLogLength = log.length;
+
+		if (runResetPending) {
+			unreadLogEntries = false;
+			scrollLogToLatest();
+		} else if (logUpdatePending) {
+			if (wasPinnedBeforeLogUpdate) {
+				scrollLogToLatest();
+				unreadLogEntries = false;
+			} else {
+				unreadLogEntries = true;
+			}
+		}
+
+		observedRunId = runId;
+		observedLogLength = currentLogLength;
+		runResetPending = false;
+		logUpdatePending = false;
 	});
 
 	async function startRun(event: SubmitEvent) {
@@ -327,11 +419,12 @@
 						class="vital-track"
 						role="progressbar"
 						aria-label="Health"
-						aria-valuenow={projection.player.hp}
+						aria-valuenow={playerHealth.now}
 						aria-valuemin="0"
-						aria-valuemax={projection.player.maxHp}
+						aria-valuemax={playerHealth.max}
+						aria-valuetext={`${projection.player.hp} / ${projection.player.maxHp} HP`}
 					>
-						<span style={`width: ${hpPercent}%`}></span>
+						<span style={`width: ${playerHealth.percent}%`}></span>
 					</div>
 					{#if projection.player.temporaryHp > 0}
 						<p class="temporary">+{projection.player.temporaryHp} temporary</p>
@@ -399,15 +492,59 @@
 				{#if projection.enemies.length > 0}
 					<div class="encounter-list" aria-label="Current encounter">
 						{#each projection.enemies as enemy (enemy.id)}
-							<div class="encounter">
-								<div>
-									<p class="eyebrow danger">
-										Hostile // {enemy.rank}{enemy.guarded ? ' // Guarded' : ''}
-									</p>
-									<h3>{enemy.name}</h3>
-								</div>
-								<p class="enemy-hp">{enemy.hp} / {enemy.maxHp} HP</p>
-							</div>
+							{@const targetEligible = eligibleTargetIds.includes(enemy.id)}
+							{@const selected = activeSelectedEnemyId === enemy.id}
+							{@const enemyHealth = healthProgress(enemy.hp, enemy.maxHp)}
+							{@const unavailableLabel = enemy.guarded
+								? 'Guarded'
+								: !targetEligible
+									? 'Unavailable'
+									: null}
+							<label
+								class:target-selected={selected}
+								class:target-unavailable={pending || !targetEligible}
+								class="encounter"
+							>
+								<input
+									type="radio"
+									name="enemy-target"
+									value={enemy.id}
+									bind:group={selectedEnemyId}
+									disabled={pending || !targetEligible}
+									aria-label={`Target ${enemy.name}`}
+								/>
+								<span class="enemy-copy">
+									<span class="enemy-heading">
+										<span>
+											<span class="eyebrow danger">Hostile // {enemy.rank}</span>
+											<strong>{enemy.name}</strong>
+										</span>
+										<span class="target-state">
+											{#if selected}
+												Target
+											{:else if unavailableLabel}
+												{unavailableLabel}
+											{:else}
+												Available
+											{/if}
+										</span>
+									</span>
+									<span class="enemy-vital">
+										<span class="enemy-hp">{enemy.hp} / {enemy.maxHp} HP</span>
+										<span
+											class="enemy-health-track"
+											role="progressbar"
+											aria-label={`${enemy.name} health`}
+											aria-valuenow={enemyHealth.now}
+											aria-valuemin="0"
+											aria-valuemax={enemyHealth.max}
+											aria-valuetext={`${enemy.hp} / ${enemy.maxHp} HP`}
+										>
+											<span style={`width: ${enemyHealth.percent}%`}></span>
+										</span>
+									</span>
+								</span>
+							</label>
 						{/each}
 						{#if projection.decodeCount > 0}
 							<p class="decode-clock">Decode {projection.decodeCount} / 3</p>
@@ -419,19 +556,36 @@
 					<p class="label">Tomb record</p>
 					<span>{log.length} entries</span>
 				</div>
-				<ol class="command-log" aria-live="polite">
-					{#if log.length === 0}
-						<li class="neutral">
-							<span class="turn-mark">00</span><span>The ledger waits for a command.</span>
-						</li>
+				<div class:has-unread={unreadLogEntries} class="log-scroll">
+					<ol
+						class="command-log"
+						aria-live="polite"
+						bind:this={logElement}
+						onscroll={handleLogScroll}
+					>
+						{#if log.length === 0}
+							<li class="neutral">
+								<span class="turn-mark">00</span><span>The ledger waits for a command.</span>
+							</li>
+						{/if}
+						{#each log as entry, index (`${entry.turn}-${entry.kind}-${index}`)}
+							<li class={entry.tone}>
+								<span class="turn-mark">{String(entry.turn).padStart(2, '0')}</span>
+								<span>{entry.text}</span>
+							</li>
+						{/each}
+					</ol>
+					{#if unreadLogEntries}
+						<button
+							class="log-jump"
+							type="button"
+							aria-label="Jump to latest tomb record"
+							onclick={jumpToLatest}
+						>
+							<span aria-hidden="true">↓</span>
+						</button>
 					{/if}
-					{#each log as entry, index (`${entry.turn}-${entry.kind}-${index}`)}
-						<li class={entry.tone}>
-							<span class="turn-mark">{String(entry.turn).padStart(2, '0')}</span>
-							<span>{entry.text}</span>
-						</li>
-					{/each}
-				</ol>
+				</div>
 			</section>
 
 			<aside class="command-panel" aria-labelledby="command-title">

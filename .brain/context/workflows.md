@@ -1,5 +1,5 @@
 ---
-updated: '2026-07-29T17:59:35Z'
+updated: '2026-07-29T21:10:35Z'
 ---
 
 # Workflows
@@ -21,6 +21,10 @@ updated: '2026-07-29T17:59:35Z'
 - Every implementation: `fivefold-testing`, then `fivefold-review`
 
 Plan specs are canonical execution contracts. In GitHub source mode, use Plan assess/promote and never create planning issues, labels, milestones, or projects manually unless Plan reports `manual_fallback_allowed=true`.
+
+Frontend-only derivation helpers live under `src/lib/ui/` with colocated Vitest
+specs. Keep canonical eligibility in engine/server `LegalCommand` output; helpers
+may order or filter that projection but must not reproduce range or guard rules.
 
 `package.json` owns Bun commands. `tsconfig.json` is the SvelteKit TypeScript project config and must stay aligned with generated `.svelte-kit/tsconfig.json` behavior.
 

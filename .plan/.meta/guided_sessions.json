@@ -1,8 +1,22 @@
 {
   "schema_version": 3,
-  "last_active_chain": "brainstorm/update-canonical-game-rules-to-fivefold-v0-8-5",
-  "last_updated_at": "2026-07-29T16:22:07Z",
+  "last_active_chain": "brainstorm/combat-readability-and-target-selection",
+  "last_updated_at": "2026-07-29T20:51:05Z",
   "sessions": {
+    "brainstorm/combat-readability-and-target-selection": {
+      "chain_id": "brainstorm/combat-readability-and-target-selection",
+      "brainstorm": "combat-readability-and-target-selection",
+      "current_stage": "brainstorm",
+      "current_cluster": 1,
+      "current_cluster_label": "vision-intake",
+      "stage_statuses": {
+        "brainstorm": "in_progress"
+      },
+      "summary": "Vision still missing. No supporting material recorded yet.",
+      "next_action": "Capture the user's vision in plain language.",
+      "created_at": "2026-07-29T20:51:05Z",
+      "updated_at": "2026-07-29T20:51:05Z"
+    },
     "brainstorm/fivefold-web-text-dungeon-crawler-mvp": {
       "chain_id": "brainstorm/fivefold-web-text-dungeon-crawler-mvp",
       "brainstorm": "fivefold-web-text-dungeon-crawler-mvp",

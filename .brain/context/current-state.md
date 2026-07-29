@@ -1,5 +1,5 @@
 ---
-updated: '2026-07-29T18:00:30Z'
+updated: '2026-07-29T21:21:52Z'
 ---
 
 # Current State
@@ -30,7 +30,17 @@ Plan mirrored Issue #1 under `.plan/.meta/github.json`. A post-promotion preview
 
 Plan CLI v0.1.28 cannot derive execution slices directly from the GitHub-owned spec and still looks for `.plan/specs/single-player-procedural-st-bozma-roguelike.md`. The linked execution branch contains that file as an explicitly labeled compatibility mirror; Issue #1 remains canonical. Do not run `plan github adopt` for this issue because it reapplies the stale promotion draft.
 
+Plan created [GitHub Issue #6](https://github.com/JimmyMcBride/five-fold-game/issues/6), `Combat readability and target selection`, as a ready spec. It covers pinned Tomb Record scrolling, accessible enemy HP bars, LegalCommand-backed radio targeting, selected-target command integration, responsive/reduced-motion behavior, and multi-enemy Playwright coverage. The owner approved the brief on 2026-07-29; implementation is authorized, while production deployment remains out of scope.
+
 ## Verification
+
+Issue #6 implementation is complete on
+`codex/combat-readability-and-target-selection`. It adds pinned Tomb Record
+scrolling with unread jump control, semantic enemy HP bars, Near-first persistent
+radio targeting, selected-target command filtering, and responsive/reduced-motion
+coverage without moving legality into Svelte. Lint, Svelte/TypeScript, 57 unit
+tests, production build, and two Playwright flows pass; desktop/mobile manual QA
+is clean. PR #7 review feedback is resolved: unavailable reasons stay neutral without server metadata, pending target rows are visibly disabled, and HP progress bars expose exact accessible value text.
 
 Issue #1 implementation is active on
 `codex/single-player-procedural-st-bozma-roguelike`. Current checks pass lint,
