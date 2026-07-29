@@ -133,7 +133,7 @@ migrate(
 			],
 			indexes: [
 				'CREATE UNIQUE INDEX idx_run_records_run ON run_records (run)',
-				'CREATE INDEX idx_run_records_owner_created ON run_records (owner, created)'
+				'CREATE INDEX idx_run_records_owner ON run_records (owner)'
 			]
 		});
 		app.save(records);
