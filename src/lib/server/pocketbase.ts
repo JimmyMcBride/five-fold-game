@@ -11,6 +11,21 @@ export function createPocketBase(): PocketBase {
 	return new PocketBase(getPocketBaseUrl());
 }
 
+export class PocketBaseServiceConfigurationError extends Error {}
+
+export function createPocketBaseService(): PocketBase {
+	const token = env.POCKETBASE_SERVICE_TOKEN?.trim();
+	if (!token) {
+		throw new PocketBaseServiceConfigurationError(
+			'POCKETBASE_SERVICE_TOKEN is required for run persistence.'
+		);
+	}
+
+	const pb = createPocketBase();
+	pb.authStore.save(token);
+	return pb;
+}
+
 export function sanitizeSession(record: RecordModel | null): App.SessionUser | null {
 	if (!record) return null;
 

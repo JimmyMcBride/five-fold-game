@@ -1,5 +1,5 @@
 ---
-updated: '2026-07-29T05:41:32Z'
+updated: '2026-07-29T08:06:48Z'
 ---
 
 # Architecture
@@ -10,22 +10,38 @@ updated: '2026-07-29T05:41:32Z'
 
 `package.json` is the runtime manifest and canonical Bun script surface.
 
-Bootstrap modules:
+Core modules:
 
 - `commands.ts` — player intent
 - `events.ts` — readable domain outcomes
-- `state.ts` — serializable run state
+- `model.ts` / `state.ts` — serializable run model and initialization
 - `rng.ts` — seeded deterministic source
 - `engine.ts` — command resolution
-- `src/lib/game/content/rooms.ts` — specimen room content
+- `src/lib/game/content/` — fixed class/enemy/room data and dungeon generation
+- `projection.ts` — sanitized player-facing run projection
+
+`scripts/` is reserved for disposable development utilities; no script is part
+of the application runtime or verification contract unless promoted into
+`package.json`.
 
 ## Application Boundary
 
-`src/routes/+page.svelte` is the Obsidian + Bone playable specimen. UI issues commands and renders events; it does not reimplement outcomes. `src/hooks.server.ts` creates one PocketBase client per request. `src/lib/server/pocketbase.ts` owns URL resolution and sanitized session projection.
+`src/routes/+page.svelte` is the Obsidian + Bone playable alpha. UI submits
+versioned commands and renders projections/events; it does not reimplement
+outcomes. `src/hooks.server.ts` creates one PocketBase identity client per
+request. `src/lib/server/pocketbase.ts` owns URL resolution, sanitized sessions,
+and the request-scoped service-token client for locked run collections.
+`src/lib/server/run-repository.ts` owns active runs, atomic command commits,
+idempotency, resume, and history.
 
 ## Persistence Direction
 
-Server-authoritative runs will use snapshots plus append-only command/event history, seeded replay data, and atomic `expectedVersion` checks. Stale commands must be rejected. PocketBase collection shape requires an approved spec; bootstrap performs no remote schema mutation.
+Server-authoritative runs use snapshots plus append-only command/event history,
+seeded replay data, and atomic `expectedVersion` checks. Illegal and stale
+commands do not advance the version. Production commits use PocketBase’s
+transactional batch endpoint, unique command IDs, and a unique resulting-version
+index. The reviewed migration is present in source but remains unapplied to the
+remote alpha instance.
 
 ## Rules And Content
 

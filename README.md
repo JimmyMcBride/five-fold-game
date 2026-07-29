@@ -2,7 +2,11 @@
 
 Browser-based, text-first, turn-based dungeon crawler built with SvelteKit, Svelte 5, TypeScript, Bun, Tailwind CSS, and PocketBase.
 
-The bootstrap includes one playable local specimen: enter the Crooked Ossuary, resolve a deterministic encounter, collect loot, and level a character. The pure game engine is framework-independent; persisted runs will remain server-authoritative.
+The current alpha implementation supports public Discord OAuth, run-scoped
+character creation for all five classes, a seeded eight-room St. Bozma dungeon,
+solo combat and progression, autosave/resume, and immutable run summaries. The
+pure engine remains framework-independent and persisted commands are
+server-authoritative.
 
 ## Develop
 
@@ -12,7 +16,14 @@ bun install
 bun run dev
 ```
 
-`POCKETBASE_URL` defaults to the documented remote URL when absent. Never place privileged PocketBase credentials in client-exposed environment variables.
+`POCKETBASE_URL` defaults to the documented remote URL when absent. Production
+run persistence also requires a server-only `POCKETBASE_SERVICE_TOKEN`; never
+place it in a public environment variable.
+
+The run collections migration under `pocketbase/pb_migrations/` is intentionally
+unapplied. Read `docs/pocketbase.md` before enabling the alpha persistence
+collections or PocketBase batch API. `FIVEFOLD_TEST_MODE` is only for local
+Playwright and must never be enabled in deployment.
 
 ## Verify
 
@@ -31,6 +42,7 @@ Project work runs these commands through `brain session run -- ...` so Brain rec
 - `src/lib/game/` — pure deterministic command engine.
 - `src/lib/server/` — server-only integrations, including PocketBase.
 - `src/routes/` — SvelteKit UI and server route boundaries.
+- `pocketbase/pb_migrations/` — reviewed, reversible, unapplied run schema.
 - `docs/game-rules/` — byte-preserved canonical Fivefold v0.8 Beta import.
 - `docs/adaptations/` — explicit dungeon-crawler decisions; never canonical rules.
 - `docs/reference/fivefold-table/` — legacy table-era implementation references.

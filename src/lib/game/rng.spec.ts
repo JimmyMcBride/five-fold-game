@@ -18,4 +18,14 @@ describe('createRng', () => {
 
 		expect(() => rng.int(4, 3)).toThrow(RangeError);
 	});
+
+	it('resumes from a serialized cursor', () => {
+		const first = createRng('fivefold');
+		first.int(1, 100);
+		const snapshot = first.snapshot?.();
+		if (!snapshot) throw new Error('Expected a snapshot.');
+
+		const resumed = createRng('fivefold', snapshot.cursor);
+		expect(resumed.int(1, 100)).toBe(first.int(1, 100));
+	});
 });

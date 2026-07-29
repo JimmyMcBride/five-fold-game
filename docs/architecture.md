@@ -16,7 +16,11 @@ resolveCommand(state, command, rng) -> { state, events }
 - Events explain outcomes to UI, persistence, and replay tools.
 - Room movement, encounters, combat, loot, inventory, and progression grow inside this boundary.
 
-The bootstrap engine is intentionally narrow. It proves movement, one encounter, seeded combat rolls, loot, and level progression without automating the full Fivefold rulebook.
+The engine now owns seeded eight-room graphs, five fixed class kits, legal command
+projection, d100 bands, initiative, turn economy, ranks, defensive rolls,
+temporary health, momentum, selected class features, solo enemy behavior,
+progression, events, loot, Barnabe’s Decode clock, and terminal outcomes.
+Explicit omissions remain in `docs/adaptations/st-bozma-mvp.md`.
 
 ### SvelteKit application
 
@@ -26,36 +30,34 @@ SvelteKit server code owns identity, authorization, version checks, and persiste
 
 ### PocketBase persistence
 
-Create one PocketBase client per SvelteKit request. Raw auth records, admin credentials, privileged collection access, and unsanitized records stay server-side. Browser route data receives only explicit session and game projections.
+Create request-scoped PocketBase clients: one user-authenticated identity client
+for Discord OAuth and one service-token client for locked run collections. Raw
+auth records, the service token, privileged collection access, and unsanitized
+records stay server-side. Browser route data receives only explicit session and
+game projections.
 
-No remote schema changes are part of bootstrap.
+`src/lib/server/run-repository.ts` owns active-run creation, expected-version
+commands, idempotency, resume, and history. Production commits use PocketBase’s
+transactional batch endpoint; Playwright uses an explicitly gated in-memory
+repository.
 
-## Run Persistence Direction
+## Run Persistence Contract
 
-Anticipated collections:
+The unapplied migration creates `game_runs`, `run_actions`, and `run_records`.
+Each accepted command carries `runId`, stable `commandId`, and
+`expectedVersion`. The server resolves the pure engine, then atomically appends
+the action, advances the snapshot/version, and creates a terminal summary when
+needed. A unique `(run, command_id)` index makes retries idempotent. A unique
+`(run, resulting_version)` index allows only one atomic batch to advance a
+given version; a losing writer reloads the latest snapshot as stale. Direct
+Discord-user access to all three collections is locked.
 
-- `users`
-- `characters`
-- `game_runs`
-- `run_snapshots`
-- `run_actions`
-- `dungeons`
-- `rooms`
-- `enemies`
-- `items`
-- `loot_tables`
+Illegal commands do not consume RNG, increment the version, or append history.
+Stale commands return the current sanitized projection. Raw graphs, hidden state,
+auth records, and PocketBase credentials never enter browser route data.
 
-A persisted run should combine:
-
-- Periodic state snapshots.
-- Append-only accepted command and emitted event history.
-- Seed/RNG state needed for deterministic replay.
-- `expectedVersion` on each submitted command.
-- Atomic version increment with command acceptance.
-
-If a command supplies a stale `expectedVersion`, reject it and return the current sanitized run projection. Never resolve two turns from the same run version.
-
-Collection shape, access rules, snapshot cadence, and history retention require an approved spec before migration work.
+The migration and batch setting remain unapplied to the remote alpha instance
+until separately authorized.
 
 ## Rule Boundary
 

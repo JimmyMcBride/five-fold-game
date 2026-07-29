@@ -1,6 +1,7 @@
 ---
-updated: "2026-07-29T07:11:37Z"
+updated: '2026-07-29T08:06:48Z'
 ---
+
 # Current State
 
 Updated 2026-07-29.
@@ -25,10 +26,28 @@ The approved spec fixes the MVP at one seeded eight-room run, five exact level-1
 
 Plan mirrored Issue #1 under `.plan/.meta/github.json`. A post-promotion preview still reports `action: create` for the local brainstorm despite that mirror, so do not reapply the brainstorm promotion until Plan reconciles the existing issue identity.
 
+Plan CLI v0.1.28 cannot derive execution slices directly from the GitHub-owned spec and still looks for `.plan/specs/single-player-procedural-st-bozma-roguelike.md`. The linked execution branch contains that file as an explicitly labeled compatibility mirror; Issue #1 remains canonical. Do not run `plan github adopt` for this issue because it reapplies the stale promotion draft.
+
 ## Verification
 
-Recorded passing checks: lint, Svelte/TypeScript check, 5 unit tests, production build, and one Playwright room-to-encounter smoke test. Desktop and mobile screenshots were visually reviewed. PocketBase health passed. Fivefold review found no blocking issues.
+Issue #1 implementation is active on
+`codex/single-player-procedural-st-bozma-roguelike`. Current checks pass lint,
+Svelte/TypeScript, 24 unit/integration tests, production build, and the
+signed-out → test-auth → five-class creation → movement/combat →
+refresh/resume → logout Playwright flow. The shared `reference-100756` seed
+reaches victory with all five templates while exercising a signature feature.
+PocketBase health and Discord provider discovery pass.
+
+The branch contains deterministic eight-room generation, five fixed kits,
+selected canonical class features, fixed solo enemies/progression/finale,
+sanitized projections, Discord OAuth routes, versioned run APIs, idempotent
+repository behavior, locked run collections, and a reversible PocketBase
+migration. Production persistence uses a private service token; Discord user
+tokens cannot call run collections directly. No remote schema or deployment
+change has been made.
 
 ## Next Product Step
 
-Start the linked Issue #1 execution branch and derive implementation slices from the approved spec. Remote PocketBase schema changes and deployment remain separately unauthorized.
+Finish the durable context audit, then commit, push, and open the ready Issue #1
+PR. Remote PocketBase schema changes, service-token provisioning, and deployment
+remain separately unauthorized.
