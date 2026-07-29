@@ -17,7 +17,10 @@ Create a browser-based, text-first, turn-based Fivefold dungeon crawler where pl
 ## Constraints
 
 - SvelteKit, Svelte 5, TypeScript, Bun, Tailwind CSS, and PocketBase.
-- No full rules automation, procedural generation, co-op architecture, or remote schema design before approved scope.
+- Single-player, run-based roguelike MVP.
+- Deterministic procedural St. Bozma dungeon from authored room, encounter, enemy, and loot templates.
+- All five starting classes ship with viable level-1 kits; specializations and broad perk automation remain later work.
+- No co-op architecture, full rules automation, permanent metaprogression, or speculative services in the MVP.
 - No unreviewed GitHub planning promotion.
 
 ## Planning Rules
@@ -29,4 +32,4 @@ Create a browser-based, text-first, turn-based Fivefold dungeon crawler where pl
 ## Notes
 
 - GitHub is planning source of truth.
-- Initial MVP direction remains in brainstorm until user reviews proposed scope.
+- User resolved MVP direction on 2026-07-29. Promotion preview still requires review before apply.

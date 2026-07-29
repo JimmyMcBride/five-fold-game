@@ -6,11 +6,11 @@ Created: 2026-07-29T05:42:16Z
 
 No product roadmap is approved. Current work is discovery for the Fivefold web text dungeon crawler MVP.
 
-## Discovery
+## MVP Spec Promotion
 
-Goal: resolve player model, dungeon model, progression, rules adaptation, death/save behavior, classes, initial content, and St. Bozma’s Tomb usage.
+Goal: promote one bounded spec for a single-player, procedural, run-based St. Bozma dungeon.
 
-Summary: active brainstorm `fivefold-web-text-dungeon-crawler-mvp`.
+Summary: product direction resolved in `fivefold-web-text-dungeon-crawler-mvp`; promotion remains preview-only until confirmed.
 
 ## Foundation
 
@@ -20,11 +20,12 @@ Summary: bootstrap foundation exists; future implementation requires approved sp
 
 ## Ordering Notes
 
-- Assess brainstorm maturity before promotion.
+- Preview one-spec promotion after maturity assessment.
 - Do not apply GitHub promotion until user confirms proposed scope.
 
 ## Parking Lot
 
 - Co-op.
-- Procedural generation.
+- Persistent campaign characters and permanent metaprogression.
+- Full class specialization and perk automation.
 - Broad rules automation.

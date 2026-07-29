@@ -17,15 +17,19 @@ Every rules-sensitive implementation must identify one status:
 - Persistence will use server-authoritative command validation, snapshots, and append-only history.
 - Canonical rules remain untouched even when a browser flow needs a simplified specimen.
 
-## Unresolved Product Decisions
+## Approved MVP Direction
 
-- Single-player first, co-op, or both.
-- Authored dungeon first or procedural generation.
-- Run-based roguelike progression or persistent campaign character.
-- Exact rules versus explicit dungeon adaptations.
-- Death and save models.
-- Initial class count.
-- Initial dungeon scope.
-- Whether St. Bozma’s Tomb is the first playable dungeon.
+- Single-player first.
+- Seeded procedural dungeon generation first.
+- Run-based roguelike progression with no permanent power carryover.
+- All five starting classes receive viable level-1 kits; specializations and broad perk automation are deferred.
+- St. Bozma’s Tomb supplies the first room, enemy, loot, and narrative templates.
+- Initial run: fixed Monastery Grounds entry, six procedural middle rooms, fixed Resting Chamber finale, at least one branch, two normal combats, one final combat, one noncombat event, and one loot/recovery choice.
+- Active progress autosaves after accepted commands. Death ends and archives the run; the next run starts fresh. Run history remains read-only.
+- MVP death adaptation: 0 HP ends the run. Canonical Dying and Recovery Die death handling is deferred.
 
-Resolve these through the Plan brainstorm and approved specs.
+## Rules Fit Test
+
+Keep a canonical rule exact when it is deterministic, solo-applicable, useful to the room/combat loop, and within the approved implementation surface. Explicitly adapt mechanics that require GM judgment, group/ally play, open-ended fictional rulings, or table pacing.
+
+Every implemented class feature, enemy ability, item, and room event must cite its canonical source or name its adaptation in the approved spec.
