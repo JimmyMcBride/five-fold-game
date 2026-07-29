@@ -40,7 +40,7 @@ Rules:
 
 ## Run Persistence
 
-The public alpha applies the initial
+The public-alpha persistence schema is defined by the initial
 `pocketbase/pb_migrations/1785309600_create_fivefold_runs.js` migration and the
 corrective `1785316900_fix_run_zero_values_and_history.js` and
 `1785341801_add_run_history_index.js` migrations. Together they create:
