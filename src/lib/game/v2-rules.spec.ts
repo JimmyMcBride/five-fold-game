@@ -5,10 +5,10 @@ import { getLegalCommands, resolveCommand } from './engine';
 import type { EncounterState, GameState } from './model';
 import type { RandomSource } from './rng';
 import {
-	CONTENT_VERSION,
 	createInitialState,
 	decodeGameState,
-	LEGACY_CONTENT_VERSION
+	LEGACY_CONTENT_VERSION,
+	V2_CONTENT_VERSION
 } from './state';
 
 function sequenceRng(...initialValues: number[]): RandomSource {
@@ -30,7 +30,11 @@ function sequenceRng(...initialValues: number[]): RandomSource {
 }
 
 function combatState(className: GameState['player']['className'] = 'Warrior'): GameState {
-	const state = createInitialState({ seed: `v2-${className}`, className });
+	const state = createInitialState({
+		seed: `v2-${className}`,
+		className,
+		contentVersion: V2_CONTENT_VERSION
+	});
 	state.phase = 'combat';
 	state.encounter = {
 		id: 'v2-test',
@@ -62,8 +66,16 @@ function command<T extends GameCommand['type']>(
 
 describe('Fivefold v0.8.5 v2', () => {
 	it('seeds starting health once while preserving the byte shape of v1 initialization', () => {
-		const first = createInitialState({ seed: 'health-seed', className: 'Warrior' });
-		const replay = createInitialState({ seed: 'health-seed', className: 'Warrior' });
+		const first = createInitialState({
+			seed: 'health-seed',
+			className: 'Warrior',
+			contentVersion: V2_CONTENT_VERSION
+		});
+		const replay = createInitialState({
+			seed: 'health-seed',
+			className: 'Warrior',
+			contentVersion: V2_CONTENT_VERSION
+		});
 		const legacy = createInitialState({
 			seed: 'health-seed',
 			className: 'Warrior',
@@ -71,7 +83,7 @@ describe('Fivefold v0.8.5 v2', () => {
 		});
 
 		expect(first).toEqual(replay);
-		expect(first.contentVersion).toBe(CONTENT_VERSION);
+		expect(first.contentVersion).toBe(V2_CONTENT_VERSION);
 		expect(first.player.healthRolls).toHaveLength(1);
 		expect(first.player.maxHp).toBe(
 			first.player.stats.heart +
@@ -96,7 +108,7 @@ describe('Fivefold v0.8.5 v2', () => {
 
 	it('decodes explicit v1/v2 snapshots and refuses incomplete v2 state', () => {
 		const legacy = createInitialState({ contentVersion: LEGACY_CONTENT_VERSION });
-		const current = createInitialState();
+		const current = createInitialState({ contentVersion: V2_CONTENT_VERSION });
 		const incomplete = structuredClone(current);
 		delete incomplete.player.healthRolls;
 

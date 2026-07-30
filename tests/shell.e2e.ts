@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import type { RunProjection } from '../src/lib/game/projection';
 
 test('public visitor signs in, creates a character, moves, and resumes the run', async ({
 	page
@@ -296,6 +297,245 @@ test('multi-enemy targeting and Tomb Record scrolling preserve player intent', a
 
 	await page.setViewportSize({ width: 390, height: 844 });
 	await expect(farTarget).toBeVisible();
+	await expect
+		.poll(() =>
+			page.evaluate(
+				() => document.documentElement.scrollWidth <= document.documentElement.clientWidth
+			)
+		)
+		.toBe(true);
+});
+
+test('v3 merchant, inventory, warnings, item use, and relic replacement remain accessible', async ({
+	context,
+	page
+}) => {
+	await context.addCookies([
+		{
+			name: 'ff_test_user',
+			value: 'expedition-ui-user',
+			domain: '127.0.0.1',
+			path: '/'
+		}
+	]);
+	await page.goto('/');
+	await page.getByLabel('Character name').fill('Sable Reed');
+	await page.getByLabel('Seed optional').fill('expedition-ui-seed');
+	await page.getByText('Warrior', { exact: true }).click();
+	await page.getByRole('button', { name: 'Begin run' }).click();
+
+	let projection: RunProjection | null = null;
+	const submitted: Record<string, unknown>[] = [];
+	await page.route('**/api/runs/*/commands', async (route) => {
+		const request = route.request().postDataJSON() as { command: Record<string, unknown> };
+		submitted.push(request.command);
+		if (!projection) {
+			const response = await route.fetch();
+			const body = (await response.json()) as { kind: string; projection: RunProjection };
+			projection = {
+				...body.projection,
+				version: Number(body.projection.version) + 1,
+				phase: 'exploration',
+				room: {
+					...body.projection.room,
+					id: 'gallery',
+					name: 'Gallery Quartermaster',
+					kicker: 'Safe stores behind a barred vestry',
+					description: 'Sister Caldrin inventories what survived the raid.'
+				},
+				player: {
+					...body.projection.player,
+					gold: 20,
+					hp: Math.max(1, Number(body.projection.player.maxHp) - 10)
+				},
+				enemies: [],
+				combat: null,
+				expedition: {
+					inventory: {
+						consumables: [
+							{
+								id: 'healing-potion',
+								name: 'Healing Potion',
+								quantity: 1,
+								classification: 'canonical',
+								description: 'Restore health as if Patching Up.'
+							}
+						],
+						questItems: [
+							{
+								id: 'bozman-sensor',
+								name: 'Bozman Sensor',
+								description: 'Opens and protects authored routes.'
+							}
+						],
+						relics: [
+							{
+								id: 'hushglass-rosary',
+								name: 'Hushglass Rosary',
+								benefit: 'Suppress first noisy ambush.',
+								drawback: 'Halve successful-search gold.'
+							},
+							{
+								id: 'pilgrims-red-thread',
+								name: "Pilgrim's Red Thread",
+								benefit: 'First rank switch grants defense advantage.',
+								drawback: 'Hostiles gain momentum.'
+							}
+						],
+						reserveWeapon: null,
+						pendingRelic: {
+							id: 'grave-tappers-bell',
+							name: "Grave-Tapper's Bell",
+							benefit: 'Search with advantage.',
+							drawback: 'Noisy failure adds a hostile.'
+						},
+						waxCoated: false
+					},
+					merchant: {
+						name: 'Sister Caldrin, Shrine Quartermaster',
+						introduction: 'A wounded quartermaster offers the stores she saved.',
+						stock: [
+							{
+								id: 'stock:healing-potion',
+								itemId: 'healing-potion',
+								name: 'Healing Potion',
+								description: 'Restore health as if Patching Up.',
+								classification: 'canonical',
+								price: 50,
+								quantity: 1,
+								affordable: false,
+								capacityConflict: false,
+								soldOut: false
+							},
+							{
+								id: 'stock:blue-hive-wax',
+								itemId: 'blue-hive-wax',
+								name: 'Blue Hive Wax',
+								description: 'Next weapon hit gains Poison.',
+								classification: 'adaptation',
+								price: 20,
+								quantity: 1,
+								affordable: true,
+								capacityConflict: false,
+								soldOut: false
+							},
+							{
+								id: 'stock:grave-tappers-bell',
+								itemId: 'grave-tappers-bell',
+								name: "Grave-Tapper's Bell",
+								description: 'Clearer searches make louder mistakes.',
+								benefit: 'Search with advantage.',
+								drawback: 'Noisy failure adds a hostile.',
+								classification: 'adaptation',
+								price: 40,
+								quantity: 1,
+								affordable: false,
+								capacityConflict: true,
+								soldOut: false
+							}
+						]
+					},
+					pendingOutcome: false
+				},
+				commands: [
+					{
+						id: 'inspect',
+						label: 'Inspect',
+						detail: 'Read the room.',
+						command: { type: 'inspect' }
+					},
+					{
+						id: 'search:gallery:cache',
+						label: 'Disturb the echoing cache',
+						detail: 'Reflex // Hard',
+						warning: 'Noise here may draw an ambush.',
+						command: { type: 'search', interactionId: 'search:gallery:cache' }
+					},
+					{
+						id: 'buy:stock:blue-hive-wax',
+						label: 'Buy Blue Hive Wax',
+						detail: '20gp // 1 remaining',
+						command: { type: 'buy', stockId: 'stock:blue-hive-wax' }
+					},
+					{
+						id: 'use:healing-potion',
+						label: 'Use Healing Potion',
+						detail: 'Restore health.',
+						command: { type: 'use-item', itemId: 'healing-potion' }
+					},
+					{
+						id: 'replace:pending:hushglass-rosary',
+						label: 'Replace Hushglass Rosary',
+						detail: "Destroy it and take Grave-Tapper's Bell.",
+						command: {
+							type: 'replace-relic',
+							incomingRelicId: 'grave-tappers-bell',
+							outgoingRelicId: 'hushglass-rosary'
+						}
+					}
+				],
+				events: [
+					{
+						kind: 'inspection',
+						text: 'The safe vestry opens for trade.',
+						tone: 'neutral',
+						turn: 1
+					}
+				]
+			};
+			await route.fulfill({ response, json: { ...body, projection } });
+			return;
+		}
+
+		projection = {
+			...projection,
+			version: Number(projection.version) + 1,
+			events: [
+				{
+					kind:
+						request.command.type === 'buy'
+							? 'purchase-resolved'
+							: request.command.type === 'replace-relic'
+								? 'relic-replaced'
+								: 'item-used',
+					text: `${String(request.command.type)} accepted.`,
+					tone: 'command',
+					turn: Number(projection.turn) + submitted.length
+				}
+			]
+		};
+		await route.fulfill({
+			status: 200,
+			contentType: 'application/json',
+			body: JSON.stringify({ kind: 'accepted', projection })
+		});
+	});
+
+	await page.getByRole('button', { name: /^Inspect/ }).click();
+	await expect(
+		page.getByRole('heading', { name: 'Sister Caldrin, Shrine Quartermaster' })
+	).toBeVisible();
+	await expect(page.getByText('20gp', { exact: true }).first()).toBeVisible();
+	await expect(page.getByText('Insufficient gold', { exact: true }).first()).toBeVisible();
+	await expect(page.getByText('Benefit // Search with advantage.').first()).toBeVisible();
+	await expect(page.getByText('Cost // Noisy failure adds a hostile.').first()).toBeVisible();
+	await expect(page.getByText('Warning // Noise here may draw an ambush.')).toBeVisible();
+	await expect(page.getByText("Grave-Tapper's Bell awaits replacement")).toBeVisible();
+
+	await page.getByRole('button', { name: 'Buy', exact: true }).click();
+	await expect.poll(() => submitted.at(-1)?.type).toBe('buy');
+	await expect(submitted.at(-1)).toEqual({
+		type: 'buy',
+		stockId: 'stock:blue-hive-wax'
+	});
+
+	await page.getByRole('button', { name: /^Replace Hushglass Rosary/ }).click();
+	await expect.poll(() => submitted.at(-1)?.type).toBe('replace-relic');
+	await page.getByRole('button', { name: /^Use Healing Potion/ }).click();
+	await expect.poll(() => submitted.at(-1)?.type).toBe('use-item');
+
+	await page.setViewportSize({ width: 390, height: 844 });
+	await expect(page.getByText('Blue Hive Wax', { exact: true })).toBeVisible();
 	await expect
 		.poll(() =>
 			page.evaluate(

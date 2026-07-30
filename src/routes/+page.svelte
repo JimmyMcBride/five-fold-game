@@ -364,6 +364,15 @@
 							<span>{record.className} // Level {record.levelReached}</span>
 							<span class:success={record.outcome === 'victory'}>{record.outcome}</span>
 							<span>Seed {record.seed}</span>
+							{#if record.goldFound !== undefined}
+								<span>{record.goldFound}gp found // {record.goldSpent ?? 0}gp spent</span>
+							{/if}
+							{#if record.relicsCarried?.length}
+								<span>Relics // {record.relicsCarried.join(', ')}</span>
+							{/if}
+							{#if record.notableTreasure?.length}
+								<span>Treasure // {record.notableTreasure.join(', ')}</span>
+							{/if}
 						</li>
 					{/each}
 				</ul>
@@ -453,6 +462,10 @@
 						<dd>{projection.player.recoveryDice} / {projection.player.maxRecoveryDice}</dd>
 					</div>
 					<div>
+						<dt>Gold</dt>
+						<dd>{projection.player.gold}gp</dd>
+					</div>
+					<div>
 						<dt>Rank</dt>
 						<dd>{projection.player.rank}</dd>
 					</div>
@@ -473,12 +486,69 @@
 				</dl>
 
 				<div class="inventory">
-					<p class="label">Carried</p>
-					<ul>
-						{#each projection.player.inventory as item (item)}
-							<li>{item}</li>
-						{/each}
-					</ul>
+					<p class="label">Expedition inventory</p>
+					{#if projection.expedition}
+						<dl class="inventory-weapons">
+							<div>
+								<dt>Equipped</dt>
+								<dd>{projection.player.equippedWeapon}</dd>
+							</div>
+							<div>
+								<dt>Reserve</dt>
+								<dd>{projection.expedition.inventory.reserveWeapon ?? 'Empty'}</dd>
+							</div>
+						</dl>
+						{#if projection.expedition.inventory.consumables.length > 0}
+							<ul>
+								{#each projection.expedition.inventory.consumables as item (item.id)}
+									<li>
+										<strong>{item.name} ×{item.quantity}</strong>
+										<span>{item.description}</span>
+									</li>
+								{/each}
+							</ul>
+						{/if}
+						{#if projection.expedition.inventory.questItems.length > 0}
+							<ul>
+								{#each projection.expedition.inventory.questItems as item (item.id)}
+									<li><strong>{item.name}</strong><span>{item.description}</span></li>
+								{/each}
+							</ul>
+						{/if}
+						<div class="relic-slots" aria-label="Active relic slots">
+							{#each [0, 1] as slot (slot)}
+								{@const relic = projection.expedition.inventory.relics[slot]}
+								<div>
+									<span class="label">Relic {slot + 1}</span>
+									{#if relic}
+										<strong>{relic.name}</strong>
+										<span class="success">Benefit // {relic.benefit}</span>
+										<span class="danger">Cost // {relic.drawback}</span>
+									{:else}
+										<span>Empty</span>
+									{/if}
+								</div>
+							{/each}
+						</div>
+						{#if projection.expedition.inventory.pendingRelic}
+							<div class="pending-relic" role="status">
+								<strong
+									>{projection.expedition.inventory.pendingRelic.name} awaits replacement</strong
+								>
+								<span>Benefit // {projection.expedition.inventory.pendingRelic.benefit}</span>
+								<span>Cost // {projection.expedition.inventory.pendingRelic.drawback}</span>
+							</div>
+						{/if}
+						{#if projection.expedition.inventory.waxCoated}
+							<p class="success">Equipped weapon coated with Blue Hive Wax.</p>
+						{/if}
+					{:else}
+						<ul>
+							{#each projection.player.inventory as item (item)}
+								<li>{item}</li>
+							{/each}
+						</ul>
+					{/if}
 				</div>
 			</aside>
 
@@ -488,6 +558,59 @@
 					<h2 id="room-title">{projection.room.name}</h2>
 					<p>{projection.room.description}</p>
 				</div>
+
+				{#if projection.expedition?.merchant}
+					<section class="merchant-ledger" aria-labelledby="merchant-title">
+						<div>
+							<p class="eyebrow">Safe merchant // buy only</p>
+							<h3 id="merchant-title">{projection.expedition.merchant.name}</h3>
+							<p>{projection.expedition.merchant.introduction}</p>
+						</div>
+						<ul>
+							{#each projection.expedition.merchant.stock as stock (stock.id)}
+								{@const buyCommand = projection.commands.find(
+									(entry) => entry.command.type === 'buy' && entry.command.stockId === stock.id
+								)}
+								<li>
+									<div>
+										<span class="eyebrow">{stock.classification}</span>
+										<strong>{stock.name}</strong>
+										<span>{stock.description}</span>
+										{#if stock.benefit}
+											<span class="success">Benefit // {stock.benefit}</span>
+										{/if}
+										{#if stock.drawback}
+											<span class="danger">Cost // {stock.drawback}</span>
+										{/if}
+									</div>
+									<div class="merchant-price">
+										<strong>{stock.price}gp</strong>
+										<span>{stock.quantity} left</span>
+										<button
+											type="button"
+											disabled={pending || !buyCommand}
+											onclick={() => buyCommand && issue(buyCommand.command)}
+										>
+											{stock.soldOut
+												? 'Sold out'
+												: !stock.affordable
+													? 'Insufficient gold'
+													: stock.capacityConflict
+														? 'Replacement required'
+														: 'Buy'}
+										</button>
+									</div>
+								</li>
+							{/each}
+						</ul>
+					</section>
+				{/if}
+
+				{#if projection.expedition?.pendingOutcome}
+					<p class="notice danger" role="status">
+						Ambush interrupted this room. Failed treasure remains forfeited after victory.
+					</p>
+				{/if}
 
 				{#if projection.enemies.length > 0}
 					<div class="encounter-list" aria-label="Current encounter">
@@ -629,6 +752,9 @@
 									>
 										<strong>{command.label}</strong>
 										<span>{command.detail}</span>
+										{#if command.warning}
+											<span class="command-warning">Warning // {command.warning}</span>
+										{/if}
 									</button>
 								{/each}
 							</div>

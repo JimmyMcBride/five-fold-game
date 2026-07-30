@@ -1,5 +1,5 @@
 ---
-updated: '2026-07-29T21:10:48Z'
+updated: '2026-07-30T01:47:31Z'
 ---
 
 # Architecture
@@ -43,10 +43,12 @@ and the request-scoped service-token client for locked run collections.
 idempotency, resume, and history.
 
 Game snapshots dispatch explicitly by `contentVersion`.
-`st-bozma-v0.8.5-v2` is the new-run default and stores seeded health rolls plus
-combat AP/used-action identities. `st-bozma-mvp-v1` retains its historical
-state shape and resolver behavior. Persisted v2 snapshots are decoded and
-validated before replay; unknown or incomplete versions do not mutate.
+`st-bozma-expedition-v3` is the new-run default and extends the v2 rules with
+server-owned dungeon interactions, pending ambush outcomes, stable merchant
+stock, typed inventory, and temporary relic effects. `st-bozma-v0.8.5-v2` and
+`st-bozma-mvp-v1` retain their historical state shapes and resolver behavior.
+Persisted snapshots are decoded and validated before replay; unknown or
+incomplete versions do not mutate.
 
 ## Persistence Direction
 
@@ -64,3 +66,9 @@ byte-verified v0.8.5 export; its manifest records full and per-section hashes.
 Explicit browser adaptations live in `docs/adaptations/` or approved Plan
 specs. Table-era files under `docs/reference/fivefold-table/` are legacy
 references, not current product specs.
+
+`src/lib/game/content/expedition.ts` owns the approved Issue #9 adaptation
+catalog and decorates the reusable eight-room graph with interaction, treasure,
+merchant, and finale roles. Hidden rewards and ambush composition remain in
+snapshots; `projection.ts` exposes only public warnings, inventory, prices, and
+relic clauses.

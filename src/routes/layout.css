@@ -998,3 +998,133 @@ input {
 		transition-duration: 0.01ms !important;
 	}
 }
+
+.inventory-weapons {
+	display: grid;
+	gap: var(--space-xs);
+	margin: 0 0 var(--space-sm);
+}
+
+.inventory-weapons div,
+.relic-slots > div,
+.pending-relic {
+	display: grid;
+	gap: var(--space-2xs);
+	padding: var(--space-xs);
+	border: 1px solid var(--color-border);
+	background: var(--color-grave);
+}
+
+.inventory-weapons dt,
+.inventory-weapons dd {
+	margin: 0;
+}
+
+.inventory li {
+	display: grid;
+	gap: var(--space-2xs);
+}
+
+.inventory li span,
+.relic-slots span,
+.pending-relic span {
+	color: var(--color-ash);
+	font-size: 0.72rem;
+	line-height: 1.45;
+}
+
+.relic-slots {
+	display: grid;
+	gap: var(--space-xs);
+	margin-top: var(--space-sm);
+}
+
+.relic-slots .success,
+.inventory .success,
+.merchant-ledger .success {
+	color: var(--color-verdigris);
+}
+
+.relic-slots .danger,
+.pending-relic .danger,
+.merchant-ledger .danger {
+	color: var(--color-clot);
+}
+
+.pending-relic {
+	margin-top: var(--space-xs);
+	border-color: var(--color-tallow);
+}
+
+.merchant-ledger {
+	display: grid;
+	gap: var(--space-md);
+	padding: var(--space-md);
+	border-block: 1px solid var(--color-border);
+	background: var(--color-docket);
+}
+
+.merchant-ledger h3 {
+	margin: 0;
+	font-family: var(--font-display);
+	color: var(--color-bone);
+}
+
+.merchant-ledger p {
+	margin: var(--space-xs) 0 0;
+	color: var(--color-ash);
+}
+
+.merchant-ledger ul {
+	display: grid;
+	gap: var(--space-xs);
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.merchant-ledger li {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) auto;
+	gap: var(--space-md);
+	align-items: end;
+	padding: var(--space-sm);
+	border: 1px solid var(--color-border);
+	background: var(--color-ledger);
+}
+
+.merchant-ledger li > div {
+	display: grid;
+	gap: var(--space-2xs);
+}
+
+.merchant-ledger li span {
+	max-width: 68ch;
+	color: var(--color-ash);
+	font-size: 0.78rem;
+	line-height: 1.45;
+}
+
+.merchant-price {
+	min-width: 9.5rem;
+	text-align: right;
+}
+
+.merchant-price button {
+	min-height: 2.75rem;
+}
+
+.command-warning {
+	color: var(--color-clot) !important;
+}
+
+@media (max-width: 46rem) {
+	.merchant-ledger li {
+		grid-template-columns: 1fr;
+	}
+
+	.merchant-price {
+		min-width: 0;
+		text-align: left;
+	}
+}

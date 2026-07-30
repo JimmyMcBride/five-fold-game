@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { LegalCommand } from '$lib/game/commands';
-import { LEGACY_CONTENT_VERSION } from '$lib/game/state';
+import { LEGACY_CONTENT_VERSION, V2_CONTENT_VERSION } from '$lib/game/state';
 import { createMemoryRunRepository, RunConflictError, RunNotFoundError } from './run-repository';
 
 const newRun = {
@@ -164,7 +164,8 @@ describe('run repository command contract', () => {
 		let projection = await repository.create('owner-1', {
 			...newRun,
 			className: 'Warrior',
-			seed: 'v2-Warrior-3'
+			seed: 'v2-Warrior-3',
+			contentVersion: V2_CONTENT_VERSION
 		});
 		let terminalEnvelope;
 
@@ -189,5 +190,56 @@ describe('run repository command contract', () => {
 		const duplicate = await repository.command('owner-1', terminalEnvelope);
 		expect(duplicate.kind).toBe('duplicate');
 		expect(await repository.history('owner-1')).toHaveLength(1);
+	});
+
+	it('commits a v3 purchase once and rejects duplicate or stale economy writes atomically', async () => {
+		const repository = createMemoryRunRepository();
+		let projection = await repository.create('owner-1', {
+			...newRun,
+			className: 'Warrior',
+			seed: 'v3-Warrior-39'
+		});
+
+		for (let index = 0; index < 240 && !projection.expedition?.merchant; index += 1) {
+			const selected = selectReferenceCommand(projection);
+			if (!selected) throw new Error(`No command for ${projection.phase}.`);
+			const result = await repository.command('owner-1', {
+				runId: newRun.runId,
+				commandId: `merchant-command-${String(index).padStart(4, '0')}`,
+				expectedVersion: projection.version,
+				command: selected.command
+			});
+			if (result.kind !== 'accepted') throw new Error(`Unexpected ${result.kind}.`);
+			projection = result.projection;
+		}
+
+		expect(projection.expedition?.merchant).not.toBeNull();
+		expect(projection.player.gold).toBeGreaterThanOrEqual(20);
+		const purchase = projection.commands.find(
+			(entry) => entry.command.type === 'buy' && entry.command.stockId === 'stock:blue-hive-wax'
+		)?.command;
+		if (!purchase) throw new Error('Expected wax purchase.');
+		const envelope = {
+			runId: newRun.runId,
+			commandId: 'purchase-command-0001',
+			expectedVersion: projection.version,
+			command: purchase
+		};
+		const accepted = await repository.command('owner-1', envelope);
+		const duplicate = await repository.command('owner-1', envelope);
+		const stale = await repository.command('owner-1', {
+			...envelope,
+			commandId: 'purchase-command-0002'
+		});
+
+		expect(accepted.kind).toBe('accepted');
+		expect(accepted.projection.player.gold).toBe(projection.player.gold - 20);
+		expect(accepted.projection.expedition?.inventory.consumables).toContainEqual(
+			expect.objectContaining({ id: 'blue-hive-wax', quantity: 1 })
+		);
+		expect(duplicate.kind).toBe('duplicate');
+		expect(duplicate.projection).toEqual(accepted.projection);
+		expect(stale.kind).toBe('stale');
+		expect(stale.projection).toEqual({ ...accepted.projection, events: [] });
 	});
 });

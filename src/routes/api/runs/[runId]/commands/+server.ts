@@ -14,6 +14,11 @@ const COMMAND_TYPES = new Set([
 	'set-defense',
 	'patch-up',
 	'choose',
+	'search',
+	'buy',
+	'use-item',
+	'equip',
+	'replace-relic',
 	'end-turn'
 ]);
 
@@ -83,6 +88,20 @@ function isGameCommand(value: unknown): value is GameCommand {
 			return value.stat === 'heart' || value.stat === 'reflex' || value.stat === 'soul';
 		case 'choose':
 			return typeof value.optionId === 'string';
+		case 'search':
+			return typeof value.interactionId === 'string';
+		case 'buy':
+			return typeof value.stockId === 'string';
+		case 'use-item':
+			return value.itemId === 'healing-potion' || value.itemId === 'blue-hive-wax';
+		case 'equip':
+			return typeof value.weaponId === 'string';
+		case 'replace-relic':
+			return (
+				typeof value.incomingRelicId === 'string' &&
+				typeof value.outgoingRelicId === 'string' &&
+				(value.stockId === undefined || typeof value.stockId === 'string')
+			);
 		case 'shift-rank':
 			return (
 				value.economy === undefined || value.economy === 'action' || value.economy === 'maneuver'

@@ -1,5 +1,5 @@
 ---
-updated: '2026-07-29T21:10:35Z'
+updated: '2026-07-30T01:55:03Z'
 ---
 
 # Workflows
@@ -27,6 +27,8 @@ specs. Keep canonical eligibility in engine/server `LegalCommand` output; helper
 may order or filter that projection but must not reproduce range or guard rules.
 
 `package.json` owns Bun commands. `tsconfig.json` is the SvelteKit TypeScript project config and must stay aligned with generated `.svelte-kit/tsconfig.json` behavior.
+`vercel.json` pins production dependency installation to Bun 1.3.9 with the
+frozen lockfile.
 
 Canonical rule imports use one pinned markdown export:
 
@@ -49,6 +51,12 @@ The curated `reference-100756` engine smoke must continue to reach victory with
 all five v1 class templates and exercise each template’s signature feature. V2
 uses pinned per-class seeds in `reference-runs.spec.ts`; every class must replay
 identically to victory and exercise its signature feature.
+
+V3 changes must also retain the pinned v2 state/legal-command fixture, exercise
+the eight-room guarantees over a seed matrix, and replay one deterministic
+expedition per class through search, economy, item use, and signature combat.
+Browser changes cover both desktop and mobile inventory, merchant, warning, and
+relic-replacement states.
 
 ## Closeout
 
