@@ -79,6 +79,40 @@ function featureCommand(
 }
 
 describe('Fivefold v0.8.5 v2', () => {
+	it('uses Voice for the Versant Flame-scroll Shortbow attack and command detail', () => {
+		const state = combatState('Versant');
+		const attack = getLegalCommands(state).find((item) => item.command.type === 'attack');
+
+		expect(attack?.detail).toBe('Flame-scroll Shortbow // Voice // Far');
+
+		const result = resolveCommand(state, command(state, 'attack'), sequenceRng(50, 5));
+		const resolved = result.events.find((event) => event.kind === 'attack-resolved');
+
+		expect(resolved?.roll).toMatchObject({ stat: 'voice', kept: 50, band: 'normal' });
+		expect(resolved?.text).toContain('12 damage');
+		expect(result.state.encounter?.enemies[0].hp).toBe(24);
+	});
+
+	it('uses the Voice critical threshold and doubles complete Flame-scroll Shortbow damage', () => {
+		const state = combatState('Versant');
+		const result = resolveCommand(state, command(state, 'attack'), sequenceRng(5, 5));
+		const resolved = result.events.find((event) => event.kind === 'attack-resolved');
+
+		expect(resolved?.roll).toMatchObject({ stat: 'voice', kept: 5, band: 'critical' });
+		expect(resolved?.text).toContain('24 damage');
+		expect(result.state.encounter?.enemies[0].hp).toBe(12);
+	});
+
+	it('retains the Firebrand bonus die after the Flame-scroll Shortbow stat correction', () => {
+		const state = combatState('Versant');
+		const result = resolveCommand(state, command(state, 'attack'), sequenceRng(50, 9, 4));
+
+		expect(result.events.find((event) => event.kind === 'attack-resolved')?.text).toContain(
+			'20 damage'
+		);
+		expect(result.state.encounter?.enemies[0].hp).toBe(16);
+	});
+
 	it('seeds starting health once while preserving the byte shape of v1 initialization', () => {
 		const first = createInitialState({
 			seed: 'health-seed',
