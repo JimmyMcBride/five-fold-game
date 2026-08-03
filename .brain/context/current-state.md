@@ -1,5 +1,5 @@
 ---
-updated: '2026-08-03T07:24:19Z'
+updated: '2026-08-03T07:36:16Z'
 ---
 
 # Current State
@@ -95,6 +95,10 @@ tokens cannot call run collections directly. PR #2 merged the implementation; fo
 
 ## Next Product Step
 
-Review and merge Issue #10, then reconcile the pre-existing Issue #9 Plan mirror
-gap separately. Production deployment remains a separate decision; the
-run-history composite-index migration is also still pending public application.
+Reconcile the pre-existing Issue #9 Plan mirror gap separately. Production
+deployment remains a separate decision; the run-history composite-index
+migration is also still pending public application.
+
+## Issue #11 Critical Ability Damage
+
+Canonical critical-hit doubling now applies to the full dice-plus-modifier packet for Bolt, Black Cloud, and Hushing Flame. Tongues of Fire applies and stores the same doubled Voice-modifier damage for its immediate and delayed ticks. Deathblows and Blind/Silence riders remain unchanged. Focused resolver coverage, all 84 unit tests, production build, and all three Playwright flows pass on `codex/issue-11-critical-ability-damage`.

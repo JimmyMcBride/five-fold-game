@@ -1824,7 +1824,7 @@ function resolveFeature(
 			if (target) {
 				const roll = rollStat(rng, 'voice', state.player.stats.voice);
 				trackQualifyingRoll(state, roll);
-				const damage = modifier(state.player.stats.voice);
+				const damage = modifier(state.player.stats.voice) * (roll.band === 'critical' ? 2 : 1);
 				if (roll.success) {
 					if (isV2(state) && isNaturalOne(roll)) {
 						events.push(
@@ -1884,7 +1884,8 @@ function resolveSpellDamage(
 		applyDamageToEnemy(state, target, target.hp, rng, events);
 		return roll;
 	}
-	const damage = roll.success ? rollDice(rng, dice) + bonus : 0;
+	let damage = roll.success ? rollDice(rng, dice) + bonus : 0;
+	if (roll.band === 'critical') damage *= 2;
 	events.push(
 		event(
 			state,
