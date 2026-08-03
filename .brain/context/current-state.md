@@ -1,6 +1,7 @@
 ---
-updated: "2026-08-03T07:13:07Z"
+updated: '2026-08-03T07:24:19Z'
 ---
+
 # Current State
 
 Updated 2026-07-29.
@@ -19,7 +20,11 @@ Updated 2026-07-29.
 
 ## Plan
 
-Plan check passes and source mode is `github`. The owner confirmed promotion of brainstorm `fivefold-web-text-dungeon-crawler-mvp`. Plan created [GitHub Issue #1](https://github.com/JimmyMcBride/five-fold-game/issues/1), `Single-player procedural St. Bozma roguelike`, with the `enhancement` and `plan:spec` labels. The owner approved the resolved issue on 2026-07-29; readiness is approved and implementation is authorized on a linked feature branch.
+Plan source mode is `github`. Plan check currently reports one blocking mirror
+gap: Issue #9 carries Plan labels but merged `main` lacks its
+`.plan/.meta/github.json` record. Do not repair that unrelated metadata from
+Issue #10's bug-fix branch. The owner confirmed promotion of brainstorm
+`fivefold-web-text-dungeon-crawler-mvp`. Plan created [GitHub Issue #1](https://github.com/JimmyMcBride/five-fold-game/issues/1), `Single-player procedural St. Bozma roguelike`, with the `enhancement` and `plan:spec` labels. The owner approved the resolved issue on 2026-07-29; readiness is approved and implementation is authorized on a linked feature branch.
 
 Plan created [GitHub Issue #4](https://github.com/JimmyMcBride/five-fold-game/issues/4), `Update canonical game rules and runtime to Fivefold v0.8.5`, as a ready spec. Its implementation branch imports and byte-verifies the pinned v0.8.5 Google Doc, makes `st-bozma-v0.8.5-v2` the default for new runs, and retains explicit `st-bozma-mvp-v1` snapshot resolution. V2 adds two AP with duplicate-action lockout, Block/Dodge bands, Deathblows, Shove, free rank closing, seeded health growth, the 85 stat cap, and selected enemy/class corrections without a PocketBase schema change.
 
@@ -74,6 +79,13 @@ across all five classes plus the browser flow. The pinned v2 fixture, 73
 unit/integration tests, Svelte/TypeScript check, production build, and three
 desktop/mobile Playwright flows pass. No PocketBase migration is required.
 
+Issue #10 implementation is complete on
+`codex/fix-versant-flame-scroll-voice`. The Versant Flame-scroll Shortbow now
+uses canonical Voice for its roll, critical threshold, and modifier contribution
+while retaining the existing Firebrand bonus die. Legal-command detail derives
+`Voice` from weapon data without Svelte special-casing. Lint, Svelte/TypeScript,
+76 unit/reference tests, production build, and three Playwright flows pass.
+
 The branch contains deterministic eight-room generation, five fixed kits,
 selected canonical class features, fixed solo enemies/progression/finale,
 sanitized projections, Discord OAuth routes, versioned run APIs, idempotent
@@ -83,6 +95,6 @@ tokens cannot call run collections directly. PR #2 merged the implementation; fo
 
 ## Next Product Step
 
-Merge the Issue #9 expedition PR after review. Production deployment remains a
-separate decision; the run-history composite-index migration is also still
-pending public application.
+Review and merge Issue #10, then reconcile the pre-existing Issue #9 Plan mirror
+gap separately. Production deployment remains a separate decision; the
+run-history composite-index migration is also still pending public application.
