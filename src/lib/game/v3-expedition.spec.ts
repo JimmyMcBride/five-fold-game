@@ -3,7 +3,7 @@ import type { GameCommand } from './commands';
 import { createEnemy } from './content/enemies';
 import { getLegalCommands, resolveCommand } from './engine';
 import { projectRun } from './projection';
-import type { GameState } from './model';
+import { CLASS_NAMES, type GameState } from './model';
 import type { RandomSource } from './rng';
 import { CONTENT_VERSION, createInitialState, decodeGameState, summarizeRun } from './state';
 
@@ -74,6 +74,28 @@ function combatState(className: GameState['player']['className'] = 'Warrior'): G
 }
 
 describe('st-bozma-expedition-v3', () => {
+	it.each(CLASS_NAMES)('starts %s with one equipped and one reserve weapon', (className) => {
+		const state = expeditionState(`reserve-${className}`, className);
+		const [equipped, reserve] = state.player.weapons;
+
+		expect(state.player.equippedWeaponId).toBe(equipped.id);
+		expect(state.expedition?.inventory.reserveWeaponId).toBe(reserve.id);
+		expect(projectRun(state, 0).expedition?.inventory.reserveWeapon).toBe(reserve.name);
+
+		const command = legal(state, 'equip');
+		expect(command.weaponId).toBe(reserve.id);
+		const result = resolveCommand(state, command, sequenceRng());
+
+		expect(result.state.player.equippedWeaponId).toBe(reserve.id);
+		expect(result.state.expedition?.inventory.reserveWeaponId).toBe(equipped.id);
+		expect(result.events).toEqual(
+			expect.arrayContaining([
+				expect.objectContaining({ kind: 'weapon-equipped', text: `${reserve.name} equipped.` })
+			])
+		);
+		expect(state.player.equippedWeaponId).toBe(equipped.id);
+	});
+
 	it('generates deterministic eight-room guarantees across a seed matrix', () => {
 		const wildcardItems = new Set<string>();
 		for (let index = 0; index < 100; index += 1) {

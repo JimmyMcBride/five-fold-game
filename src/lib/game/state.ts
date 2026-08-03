@@ -159,6 +159,10 @@ export function createInitialState(input?: Partial<NewRunInput>): GameState {
 	const player = createPlayer(input?.name?.trim() || 'Mara Vey', className, contentVersion, rng);
 	const expedition =
 		contentVersion === CONTENT_VERSION ? createExpeditionState(seed, graph) : undefined;
+	if (expedition) {
+		expedition.inventory.reserveWeaponId =
+			player.weapons.find((weapon) => weapon.id !== player.equippedWeaponId)?.id ?? null;
+	}
 
 	return {
 		runId: input?.runId ?? 'local-bozma-001',

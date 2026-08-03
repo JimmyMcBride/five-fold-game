@@ -1,7 +1,6 @@
 ---
-updated: '2026-07-30T01:48:57Z'
+updated: "2026-08-03T07:13:07Z"
 ---
-
 # Current State
 
 Updated 2026-07-29.
@@ -69,7 +68,9 @@ Issue #9 implementation is complete on
 the deterministic eight-room role guarantees, seeded searches and stock,
 persisted ambush outcomes, atomic purchases, Healing Potion and Blue Hive Wax,
 two ordered relic slots with explicit replacement, all four relic bargains,
-sanitized projections, and history totals. The pinned v2 fixture, 68
+sanitized projections, and history totals. A PR review follow-up initializes each
+class's second weapon as its reserve and verifies legal outside-combat swaps
+across all five classes plus the browser flow. The pinned v2 fixture, 73
 unit/integration tests, Svelte/TypeScript check, production build, and three
 desktop/mobile Playwright flows pass. No PocketBase migration is required.
 

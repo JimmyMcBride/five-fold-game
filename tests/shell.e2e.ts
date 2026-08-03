@@ -324,6 +324,21 @@ test('v3 merchant, inventory, warnings, item use, and relic replacement remain a
 	await page.getByText('Warrior', { exact: true }).click();
 	await page.getByRole('button', { name: 'Begin run' }).click();
 
+	const weaponInventory = page.locator('.inventory-weapons');
+	await expect(
+		weaponInventory.locator('div').filter({ hasText: 'Equipped' }).getByText('Longsword')
+	).toBeVisible();
+	await expect(
+		weaponInventory.locator('div').filter({ hasText: 'Reserve' }).getByText('Shield')
+	).toBeVisible();
+	await page.getByRole('button', { name: /^Equip Shield/ }).click();
+	await expect(
+		weaponInventory.locator('div').filter({ hasText: 'Equipped' }).getByText('Shield')
+	).toBeVisible();
+	await expect(
+		weaponInventory.locator('div').filter({ hasText: 'Reserve' }).getByText('Longsword')
+	).toBeVisible();
+
 	let projection: RunProjection | null = null;
 	const submitted: Record<string, unknown>[] = [];
 	await page.route('**/api/runs/*/commands', async (route) => {
