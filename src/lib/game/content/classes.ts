@@ -231,7 +231,12 @@ export const CLASS_KITS: Record<ClassName, ClassKit> = {
 		originPerk: 'Firebrand',
 		armor: 'light',
 		weapons: [
-			{ ...shortbow, id: 'flame-scroll-shortbow', name: 'Flame-scroll Shortbow' },
+			{
+				...shortbow,
+				id: 'flame-scroll-shortbow',
+				name: 'Flame-scroll Shortbow',
+				stat: 'voice'
+			},
 			{
 				id: 'shortsword',
 				name: 'Shortsword',
