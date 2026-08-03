@@ -64,6 +64,20 @@ function command<T extends GameCommand['type']>(
 	return found.command as Extract<GameCommand, { type: T }>;
 }
 
+function featureCommand(
+	state: GameState,
+	featureId: string
+): Extract<GameCommand, { type: 'use-feature' }> {
+	const found = getLegalCommands(state).find(
+		(candidate) =>
+			candidate.command.type === 'use-feature' && candidate.command.featureId === featureId
+	);
+	if (!found || found.command.type !== 'use-feature') {
+		throw new Error(`No ${featureId} feature command.`);
+	}
+	return found.command;
+}
+
 describe('Fivefold v0.8.5 v2', () => {
 	it('seeds starting health once while preserving the byte shape of v1 initialization', () => {
 		const first = createInitialState({
@@ -348,6 +362,75 @@ describe('Fivefold v0.8.5 v2', () => {
 		state = result.state;
 
 		expect(state.encounter).toBeNull();
+		expect(result.events.some((entry) => entry.text.includes('Deathblow'))).toBe(true);
+	});
+
+	it('doubles the full Bolt damage packet on a critical', () => {
+		const state = combatState('Magi');
+		const result = resolveCommand(state, featureCommand(state, 'bolt'), sequenceRng(7, 10));
+
+		expect(result.state.encounter?.enemies[0].hp).toBe(2);
+		expect(result.events.some((entry) => entry.text.includes('Bolt roll 7: 34 damage'))).toBe(true);
+	});
+
+	it.each([
+		['hard', 30, 17],
+		['critical', 7, 34]
+	])('keeps Black Cloud Blind while applying %s damage', (_band, roll, expectedDamage) => {
+		const state = combatState('Magi');
+		const result = resolveCommand(
+			state,
+			featureCommand(state, 'black-cloud'),
+			sequenceRng(roll, 10)
+		);
+
+		expect(result.state.encounter?.enemies[0].hp).toBe(36 - expectedDamage);
+		expect(result.state.encounter?.enemies[0].blinded).toBe(true);
+	});
+
+	it.each([
+		['normal', 70, 7, false],
+		['hard', 30, 7, true],
+		['critical', 7, 14, true]
+	])(
+		'applies %s Hushing Flame damage without changing its Silence rider',
+		(_band, roll, expectedDamage, expectedSilence) => {
+			const state = combatState('Versant');
+			const result = resolveCommand(
+				state,
+				featureCommand(state, 'hushing-flame'),
+				sequenceRng(roll)
+			);
+
+			expect(result.state.encounter?.enemies[0].hp).toBe(36 - expectedDamage);
+			expect(result.state.encounter?.enemies[0].silencedTurns).toBe(expectedSilence ? 1 : 0);
+		}
+	);
+
+	it('uses the same doubled damage for both Tongues of Fire ticks', () => {
+		let state = combatState('Versant');
+		if (!state.encounter) throw new Error('Expected encounter.');
+		state.encounter.enemies[0].stunnedTurns = 1;
+
+		state = resolveCommand(state, featureCommand(state, 'tongues-of-fire'), sequenceRng(7)).state;
+		expect(state.encounter?.enemies[0].hp).toBe(22);
+		expect(state.player.effects.tonguesBurn).toBe(14);
+
+		const delayed = resolveCommand(state, { type: 'end-turn' }, sequenceRng());
+		expect(delayed.state.encounter?.enemies[0].hp).toBe(8);
+		expect(delayed.state.player.effects.tonguesBurn).toBe(0);
+		expect(
+			delayed.events.some((entry) =>
+				entry.text.includes('Tongues of Fire burns Scorched Raider again for 14 damage')
+			)
+		).toBe(true);
+	});
+
+	it('keeps damaging ability natural 1 rolls as Deathblows', () => {
+		const state = combatState('Magi');
+		const result = resolveCommand(state, featureCommand(state, 'bolt'), sequenceRng(1));
+
+		expect(result.state.encounter).toBeNull();
 		expect(result.events.some((entry) => entry.text.includes('Deathblow'))).toBe(true);
 	});
 
