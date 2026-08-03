@@ -1,6 +1,7 @@
 import type { GameCommand, LegalCommand } from './commands';
 import { getClassKit } from './content/classes';
 import { createEnemy } from './content/enemies';
+import { itemDefinition, RELIC_DEFINITIONS } from './content/expedition';
 import { ROOM_TEMPLATES } from './content/rooms';
 import type { GameEvent } from './events';
 import type {
@@ -9,14 +10,21 @@ import type {
 	Economy,
 	EnemyState,
 	EncounterState,
+	ExpeditionInteractionState,
 	GameState,
+	RelicId,
 	RollResult,
 	StatName,
 	Weapon
 } from './model';
 import type { RandomSource } from './rng';
 import { isNaturalOne, modifier, rollDice, rollStat } from './rules';
-import { CONTENT_VERSION, LEGACY_CONTENT_VERSION, SUPPORTED_CONTENT_VERSIONS } from './state';
+import {
+	CONTENT_VERSION,
+	LEGACY_CONTENT_VERSION,
+	SUPPORTED_CONTENT_VERSIONS,
+	V2_CONTENT_VERSION
+} from './state';
 
 export interface CommandResolution {
 	state: GameState;
@@ -42,6 +50,10 @@ function activeEnemies(state: GameState): EnemyState[] {
 }
 
 function isV2(state: GameState): boolean {
+	return state.contentVersion === V2_CONTENT_VERSION || state.contentVersion === CONTENT_VERSION;
+}
+
+function isV3(state: GameState): boolean {
 	return state.contentVersion === CONTENT_VERSION;
 }
 
@@ -53,6 +65,7 @@ function hasValidContentState(state: GameState): boolean {
 	if (!hasSupportedContentVersion(state)) return false;
 	if (!isV2(state)) return true;
 	if (!Array.isArray(state.player.healthRolls)) return false;
+	if (isV3(state) && !state.expedition) return false;
 	if (!state.encounter) return true;
 	return (
 		Number.isInteger(state.encounter.turn.actionPoints) &&
@@ -131,6 +144,138 @@ function roomOptions(state: GameState): LegalCommand[] {
 	];
 }
 
+function hasRelic(state: GameState, relicId: RelicId): boolean {
+	return state.expedition?.inventory.relicIds.includes(relicId) ?? false;
+}
+
+function canAcquireStock(state: GameState, stockId: string): boolean {
+	const expedition = state.expedition;
+	const stock = expedition?.merchant.stock.find((entry) => entry.id === stockId);
+	if (!expedition || !stock || stock.quantity <= 0 || state.player.gold < stock.price) return false;
+	if (stock.kind === 'quest') {
+		return !expedition.inventory.questItemIds.includes(stock.itemId as 'bozman-sensor');
+	}
+	if (stock.kind === 'relic') return expedition.inventory.relicIds.length < 2;
+	return true;
+}
+
+function expeditionCommands(state: GameState): LegalCommand[] {
+	const expedition = state.expedition;
+	if (!isV3(state) || !expedition || state.phase !== 'exploration') return [];
+	const node = state.graph.nodes[state.roomId];
+	const commands: LegalCommand[] = [];
+
+	for (const interactionId of node.interactionIds ?? []) {
+		if (expedition.resolvedInteractionIds.includes(interactionId)) continue;
+		const interaction = expedition.interactions[interactionId];
+		if (!interaction) continue;
+		if (
+			interaction.requiredQuestItemId &&
+			!expedition.inventory.questItemIds.includes(interaction.requiredQuestItemId)
+		) {
+			continue;
+		}
+		commands.push({
+			id: interaction.id,
+			label: interaction.label,
+			detail: [
+				interaction.prompt,
+				interaction.stat
+					? `${capitalize(interaction.stat)} // ${capitalize(interaction.difficulty ?? 'normal')}`
+					: ''
+			]
+				.filter(Boolean)
+				.join(' '),
+			warning: interaction.warning,
+			command: { type: 'search', interactionId: interaction.id }
+		});
+	}
+
+	if (node.merchantId === expedition.merchant.id) {
+		for (const stock of expedition.merchant.stock) {
+			if (canAcquireStock(state, stock.id)) {
+				commands.push({
+					id: `buy:${stock.id}`,
+					label: `Buy ${itemDefinition(stock.itemId).name}`,
+					detail: `${stock.price}gp // ${stock.quantity} remaining`,
+					command: { type: 'buy', stockId: stock.id }
+				});
+			}
+			if (
+				stock.kind === 'relic' &&
+				stock.quantity > 0 &&
+				state.player.gold >= stock.price &&
+				expedition.inventory.relicIds.length >= 2
+			) {
+				for (const outgoingRelicId of expedition.inventory.relicIds) {
+					commands.push({
+						id: `replace:${stock.id}:${outgoingRelicId}`,
+						label: `Replace ${RELIC_DEFINITIONS[outgoingRelicId].name}`,
+						detail: `Destroy it and buy ${itemDefinition(stock.itemId).name} for ${stock.price}gp.`,
+						command: {
+							type: 'replace-relic',
+							incomingRelicId: stock.itemId,
+							outgoingRelicId,
+							stockId: stock.id
+						}
+					});
+				}
+			}
+		}
+	}
+
+	if (expedition.inventory.pendingRelicId) {
+		for (const outgoingRelicId of expedition.inventory.relicIds) {
+			commands.push({
+				id: `replace:pending:${outgoingRelicId}`,
+				label: `Replace ${RELIC_DEFINITIONS[outgoingRelicId].name}`,
+				detail: `Destroy it and take ${RELIC_DEFINITIONS[expedition.inventory.pendingRelicId].name}.`,
+				command: {
+					type: 'replace-relic',
+					incomingRelicId: expedition.inventory.pendingRelicId,
+					outgoingRelicId
+				}
+			});
+		}
+	}
+
+	const healingPotions = expedition.inventory.consumables['healing-potion'] ?? 0;
+	if (healingPotions > 0 && state.player.hp < state.player.maxHp) {
+		commands.push({
+			id: 'use:healing-potion',
+			label: 'Use Healing Potion',
+			detail: `Restore health as if Patching Up. ${healingPotions} carried.`,
+			command: { type: 'use-item', itemId: 'healing-potion' }
+		});
+	}
+	const wax = expedition.inventory.consumables['blue-hive-wax'] ?? 0;
+	if (wax > 0 && !expedition.effects.waxCoated) {
+		commands.push({
+			id: 'use:blue-hive-wax',
+			label: 'Apply Blue Hive Wax',
+			detail: `Next successful weapon hit gains 1d10 Poison. ${wax} carried.`,
+			command: { type: 'use-item', itemId: 'blue-hive-wax' }
+		});
+	}
+	if (
+		expedition.inventory.reserveWeaponId &&
+		expedition.inventory.reserveWeaponId !== state.player.equippedWeaponId
+	) {
+		const reserve = state.player.weapons.find(
+			(weapon) => weapon.id === expedition.inventory.reserveWeaponId
+		);
+		if (reserve) {
+			commands.push({
+				id: `equip:${reserve.id}`,
+				label: `Equip ${reserve.name}`,
+				detail: 'Swap equipped and reserve weapons outside combat.',
+				command: { type: 'equip', weaponId: reserve.id }
+			});
+		}
+	}
+	return commands;
+}
+
 export function getLegalCommands(state: GameState): LegalCommand[] {
 	const inspect: LegalCommand = {
 		id: 'inspect',
@@ -148,6 +293,7 @@ export function getLegalCommands(state: GameState): LegalCommand[] {
 	if (state.phase === 'exploration') {
 		const commands = [
 			inspect,
+			...expeditionCommands(state),
 			...state.graph.nodes[state.roomId].exits.map((exit): LegalCommand => ({
 				id: `move:${exit.id}`,
 				label: exit.label,
@@ -177,6 +323,21 @@ export function getLegalCommands(state: GameState): LegalCommand[] {
 	const commands: LegalCommand[] = [inspect];
 	const turn = state.encounter.turn;
 	const weapon = equippedWeapon(state);
+
+	if (
+		isV3(state) &&
+		(state.expedition?.inventory.consumables['healing-potion'] ?? 0) > 0 &&
+		state.player.hp < state.player.maxHp &&
+		economyAvailable(turn, 'action', 'item:healing-potion')
+	) {
+		commands.push({
+			id: 'use:healing-potion',
+			label: 'Use Healing Potion',
+			detail: 'Action // Restore health as if Patching Up.',
+			command: { type: 'use-item', itemId: 'healing-potion' },
+			economy: 'action'
+		});
+	}
 
 	for (const stat of allowedDefenses(state)) {
 		commands.push({
@@ -349,6 +510,21 @@ function commandKey(command: GameCommand): string {
 		case 'patch-up':
 		case 'end-turn':
 			return command.type;
+		case 'search':
+			return JSON.stringify([command.type, command.interactionId]);
+		case 'buy':
+			return JSON.stringify([command.type, command.stockId]);
+		case 'use-item':
+			return JSON.stringify([command.type, command.itemId]);
+		case 'equip':
+			return JSON.stringify([command.type, command.weaponId]);
+		case 'replace-relic':
+			return JSON.stringify([
+				command.type,
+				command.incomingRelicId,
+				command.outgoingRelicId,
+				command.stockId ?? null
+			]);
 		case 'shift-rank':
 			return JSON.stringify([command.type, command.economy ?? null]);
 		case 'attack':
@@ -429,6 +605,283 @@ function consumeEconomy(state: GameState, economy: Economy, actionId?: string): 
 	if (economy === 'maneuver') state.encounter.turn.maneuverAvailable = false;
 }
 
+function addGold(state: GameState, amount: number, events: GameEvent[], reason: string): void {
+	if (!state.expedition || amount <= 0) return;
+	state.player.gold += amount;
+	state.expedition.goldFound += amount;
+	events.push(event(state, 'gold-changed', `${reason}: ${amount}gp gained.`, 'success'));
+}
+
+function addConsumable(
+	state: GameState,
+	itemId: 'healing-potion' | 'blue-hive-wax',
+	events: GameEvent[]
+): void {
+	if (!state.expedition) return;
+	state.expedition.inventory.consumables[itemId] =
+		(state.expedition.inventory.consumables[itemId] ?? 0) + 1;
+	events.push(
+		event(state, 'item-acquired', `${itemDefinition(itemId).name} added to inventory.`, 'success')
+	);
+}
+
+function addQuestItem(state: GameState, events: GameEvent[]): void {
+	if (!state.expedition) return;
+	if (!state.expedition.inventory.questItemIds.includes('bozman-sensor')) {
+		state.expedition.inventory.questItemIds.push('bozman-sensor');
+		state.flags.bozmanSensor = true;
+		events.push(event(state, 'item-acquired', 'Bozman Sensor secured.', 'success'));
+	}
+}
+
+function addRelic(state: GameState, relicId: RelicId, events: GameEvent[]): void {
+	if (!state.expedition) return;
+	const definition = RELIC_DEFINITIONS[relicId];
+	if (state.expedition.inventory.relicIds.length < 2) {
+		state.expedition.inventory.relicIds.push(relicId);
+		events.push(
+			event(
+				state,
+				'item-acquired',
+				`${definition.name} bound. Benefit: ${definition.benefit} Cost: ${definition.drawback}`,
+				'command'
+			)
+		);
+		return;
+	}
+	state.expedition.inventory.pendingRelicId = relicId;
+	events.push(
+		event(
+			state,
+			'item-acquired',
+			`${definition.name} awaits replacement. Benefit: ${definition.benefit} Cost: ${definition.drawback}`,
+			'command'
+		)
+	);
+}
+
+function grantInteractionReward(
+	state: GameState,
+	interaction: ExpeditionInteractionState,
+	rng: RandomSource,
+	events: GameEvent[]
+): void {
+	if (!state.expedition) return;
+	const reward = interaction.successReward;
+	if (reward.goldDice) {
+		let gold = rollDice(rng, reward.goldDice);
+		if (hasRelic(state, 'hushglass-rosary')) gold = Math.floor(gold / 2);
+		addGold(state, gold, events, 'Search reward');
+	}
+	if (reward.consumableId) addConsumable(state, reward.consumableId, events);
+	if (reward.questItemId) addQuestItem(state, events);
+	if (reward.relicId) addRelic(state, reward.relicId, events);
+	if (
+		reward.notableTreasure &&
+		!state.expedition.inventory.notableTreasure.includes(reward.notableTreasure)
+	) {
+		state.expedition.inventory.notableTreasure.push(reward.notableTreasure);
+		events.push(
+			event(
+				state,
+				'loot-found',
+				`${reward.notableTreasure} recorded as notable treasure.`,
+				'success'
+			)
+		);
+	}
+}
+
+function resolveSearch(
+	state: GameState,
+	interactionId: string,
+	rng: RandomSource,
+	events: GameEvent[]
+): void {
+	const expedition = state.expedition;
+	const interaction = expedition?.interactions[interactionId];
+	if (!expedition || !interaction) return;
+	expedition.resolvedInteractionIds.push(interactionId);
+
+	if (interaction.kind === 'item-gate') {
+		events.push(
+			event(
+				state,
+				'search-resolved',
+				`${interaction.label}: the quest item opens a safer alternate outcome.`,
+				'success'
+			)
+		);
+		grantInteractionReward(state, interaction, rng, events);
+		return;
+	}
+
+	const roll = rollStat(
+		rng,
+		interaction.stat ?? 'mind',
+		state.player.stats[interaction.stat ?? 'mind'],
+		{
+			difficulty: interaction.difficulty,
+			advantage: hasRelic(state, 'grave-tappers-bell')
+		}
+	);
+	if (roll.success) {
+		events.push(
+			event(
+				state,
+				'search-resolved',
+				`${interaction.label} roll ${roll.kept}: the search succeeds.`,
+				'success',
+				roll
+			)
+		);
+		grantInteractionReward(state, interaction, rng, events);
+		return;
+	}
+
+	const noisy = Boolean(interaction.ambushEnemyIds?.length) && roll.kept >= 96;
+	events.push(
+		event(
+			state,
+			'search-resolved',
+			noisy
+				? `${interaction.label} roll ${roll.kept}: the cache erupts in betraying noise.`
+				: `${interaction.label} roll ${roll.kept}: nothing useful remains.`,
+			'danger',
+			roll
+		)
+	);
+	if (!noisy) return;
+
+	if (hasRelic(state, 'hushglass-rosary') && !expedition.effects.hushglassUsed) {
+		expedition.effects.hushglassUsed = true;
+		events.push(
+			event(
+				state,
+				'ambush-triggered',
+				'Hushglass Rosary swallows the first noisy failure; no ambush arrives.',
+				'success'
+			)
+		);
+		return;
+	}
+
+	const enemyCount = hasRelic(state, 'grave-tappers-bell') ? 2 : 1;
+	const enemyIds = (interaction.ambushEnemyIds ?? []).slice(0, enemyCount);
+	expedition.pendingOutcome = {
+		interactionId,
+		roomId: state.roomId,
+		kind: 'ambush',
+		goldReward: 5
+	};
+	events.push(
+		event(
+			state,
+			'ambush-triggered',
+			'The failed search is consumed. Hostiles answer from the dark.',
+			'danger'
+		)
+	);
+	startEncounter(state, 'ambush', enemyIds, rng, events);
+}
+
+function resolvePurchase(state: GameState, stockId: string, events: GameEvent[]): void {
+	const expedition = state.expedition;
+	const stock = expedition?.merchant.stock.find((entry) => entry.id === stockId);
+	if (!expedition || !stock) return;
+	state.player.gold -= stock.price;
+	expedition.goldSpent += stock.price;
+	stock.quantity -= 1;
+	if (stock.kind === 'consumable') {
+		addConsumable(state, stock.itemId as 'healing-potion' | 'blue-hive-wax', events);
+	} else if (stock.kind === 'quest') {
+		addQuestItem(state, events);
+	} else {
+		addRelic(state, stock.itemId as RelicId, events);
+	}
+	events.push(
+		event(
+			state,
+			'purchase-resolved',
+			`${itemDefinition(stock.itemId).name} purchased for ${stock.price}gp.`,
+			'command'
+		)
+	);
+}
+
+function resolveUseItem(
+	state: GameState,
+	itemId: 'healing-potion' | 'blue-hive-wax',
+	rng: RandomSource,
+	events: GameEvent[]
+): void {
+	const expedition = state.expedition;
+	if (!expedition) return;
+	expedition.inventory.consumables[itemId] = (expedition.inventory.consumables[itemId] ?? 0) - 1;
+	if (itemId === 'healing-potion') {
+		if (state.encounter) consumeEconomy(state, 'action', 'item:healing-potion');
+		const healing = Math.min(
+			rng.int(1, 10) + modifier(state.player.stats.heart),
+			state.player.maxHp - state.player.hp
+		);
+		state.player.hp += healing;
+		events.push(event(state, 'item-used', `Healing Potion restores ${healing} health.`, 'success'));
+		return;
+	}
+	expedition.effects.waxCoated = true;
+	events.push(
+		event(
+			state,
+			'item-used',
+			'Blue Hive Wax coats the equipped weapon; the next successful hit gains 1d10 Poison.',
+			'command'
+		)
+	);
+}
+
+function resolveRelicReplacement(
+	state: GameState,
+	command: Extract<GameCommand, { type: 'replace-relic' }>,
+	events: GameEvent[]
+): void {
+	const expedition = state.expedition;
+	if (!expedition) return;
+	const incoming = command.incomingRelicId as RelicId;
+	const outgoing = command.outgoingRelicId as RelicId;
+	const index = expedition.inventory.relicIds.indexOf(outgoing);
+	if (index < 0 || !RELIC_DEFINITIONS[incoming]) return;
+
+	if (command.stockId) {
+		const stock = expedition.merchant.stock.find((entry) => entry.id === command.stockId);
+		if (!stock) return;
+		state.player.gold -= stock.price;
+		expedition.goldSpent += stock.price;
+		stock.quantity -= 1;
+	} else {
+		expedition.inventory.pendingRelicId = null;
+	}
+	expedition.inventory.relicIds[index] = incoming;
+	events.push(
+		event(
+			state,
+			'relic-replaced',
+			`${RELIC_DEFINITIONS[outgoing].name} destroyed; ${RELIC_DEFINITIONS[incoming].name} bound with benefit and cost visible.`,
+			'command'
+		)
+	);
+}
+
+function resolveEquip(state: GameState, weaponId: string, events: GameEvent[]): void {
+	if (!state.expedition) return;
+	const weapon = state.player.weapons.find((candidate) => candidate.id === weaponId);
+	if (!weapon) return;
+	const previous = state.player.equippedWeaponId;
+	state.player.equippedWeaponId = weaponId;
+	state.expedition.inventory.reserveWeaponId = previous;
+	state.player.rank = weapon.rank;
+	events.push(event(state, 'weapon-equipped', `${weapon.name} equipped.`, 'command'));
+}
+
 function takeDamage(state: GameState, amount: number): number {
 	let remaining = amount;
 	if (state.player.temporaryHp > 0) {
@@ -483,11 +936,15 @@ function enemyAttack(
 	const statValue = state.player.stats[defense as StatName];
 	const roll = rollStat(rng, defense as StatName, statValue, {
 		adjustment: defensiveAdjustment(state, defense),
-		advantage: state.player.effects.braced || enemy.blinded
+		advantage:
+			state.player.effects.braced ||
+			enemy.blinded ||
+			Boolean(state.expedition?.effects.redThreadDefenseAdvantage)
 	});
 	trackQualifyingRoll(state, roll);
 	state.player.effects.braced = false;
 	enemy.blinded = false;
+	if (state.expedition) state.expedition.effects.redThreadDefenseAdvantage = false;
 
 	let damage = rollDice(rng, enemy.damageDice) + enemy.damageModifier;
 	if (enemy.id === 'zeboul' && state.player.temporaryHp > 0) damage *= 2;
@@ -750,6 +1207,9 @@ function startEncounter(
 	const enemies = definitionIds.map((id, index) =>
 		createEnemy(id, String(index + 1), state.contentVersion === LEGACY_CONTENT_VERSION)
 	);
+	if (isV3(state)) {
+		for (const enemy of enemies) enemy.momentum = 0;
+	}
 	const raiderPresent = enemies.some((enemy) => enemy.id === 'scorched-raider');
 	for (const enemy of enemies) {
 		if (enemy.id === 'barnabe') enemy.guarded = !isV2(state) && raiderPresent;
@@ -773,6 +1233,11 @@ function startEncounter(
 	state.player.rank = equippedWeapon(state).rank;
 	state.player.usedFeatures = [];
 	state.player.effects.braced = false;
+	if (state.expedition) {
+		state.expedition.effects.redThreadUsed = false;
+		state.expedition.effects.redThreadDefenseAdvantage = false;
+		state.expedition.effects.counterweightUsed = false;
+	}
 
 	events.push(
 		event(
@@ -805,6 +1270,20 @@ function enterRoom(state: GameState, rng: RandomSource, events: GameEvent[]): vo
 	events.push(event(state, 'room-entered', `You enter ${room.name}.`, 'command'));
 
 	if (state.resolvedRooms.includes(node.id)) {
+		state.phase = 'exploration';
+		return;
+	}
+
+	if (isV3(state)) {
+		if (node.role === 'combat' && node.encounterDefinitionId) {
+			startEncounter(state, 'normal', [node.encounterDefinitionId], rng, events);
+			return;
+		}
+		if (node.role === 'finale') {
+			const definitions = state.flags.manessaTurned ? ['barnabe'] : ['scorched-raider', 'barnabe'];
+			startEncounter(state, 'finale', definitions, rng, events);
+			return;
+		}
 		state.phase = 'exploration';
 		return;
 	}
@@ -955,15 +1434,38 @@ function defeatEnemy(
 		return;
 	}
 
+	const encounterKind = state.encounter.kind;
 	state.encounter = null;
 	state.phase = 'exploration';
 	state.patchUpAvailable = true;
 	if (!state.resolvedRooms.includes(state.roomId)) state.resolvedRooms.push(state.roomId);
+	if (encounterKind === 'ambush' && state.expedition?.pendingOutcome) {
+		const reward = state.expedition.pendingOutcome.goldReward;
+		state.expedition.pendingOutcome = null;
+		addGold(state, reward, events, 'Ambush victory');
+		events.push(
+			event(
+				state,
+				'combat-ended',
+				'The ambush breaks. You return to the same room; the failed search stays spent.',
+				'success'
+			)
+		);
+		state.expedition.effects.waxCoated = false;
+		return;
+	}
 	state.player.experience += 5;
 	events.push(
 		event(state, 'combat-ended', 'The room falls quiet. Patch Up is available.', 'success')
 	);
 	events.push(event(state, 'experience-gained', 'Victory grants 5 XP.', 'success'));
+	if (isV3(state) && state.expedition) {
+		state.expedition.normalVictories += 1;
+		if (state.expedition.normalVictories === 1) {
+			addGold(state, 20, events, 'First required victory');
+		}
+		state.expedition.effects.waxCoated = false;
+	}
 	if (state.player.level === 1 && state.player.experience >= 10) levelUp(state, rng, events);
 }
 
@@ -999,6 +1501,18 @@ function resolveWeaponAttack(
 	}
 
 	if (isV2(state) && isNaturalOne(roll)) {
+		if (state.expedition?.effects.waxCoated) {
+			state.expedition.effects.waxCoated = false;
+			const poison = rng.int(1, 10);
+			events.push(
+				event(
+					state,
+					'item-used',
+					`Blue Hive Wax adds ${poison} Poison to the Deathblow.`,
+					'success'
+				)
+			);
+		}
 		events.push(
 			event(
 				state,
@@ -1013,6 +1527,14 @@ function resolveWeaponAttack(
 	}
 
 	let damage = weaponDamage(state, weapon, rng) + rollDice(rng, options.bonusDamageDice ?? 0);
+	if (state.expedition?.effects.waxCoated) {
+		state.expedition.effects.waxCoated = false;
+		const poison = rng.int(1, 10);
+		damage += poison;
+		events.push(
+			event(state, 'item-used', `Blue Hive Wax discharges for ${poison} Poison damage.`, 'success')
+		);
+	}
 	damage = Math.max(1, Math.floor(damage * (options.damageScale ?? 1)));
 	if (roll.band === 'critical') damage *= 2;
 	trackQualifyingRoll(state, roll);
@@ -1557,6 +2079,23 @@ export function resolveCommand(
 				else next.encounter.turn.actionUsed = true;
 			}
 			next.player.rank = next.player.rank === 'near' ? 'far' : 'near';
+			if (
+				next.expedition &&
+				hasRelic(next, 'pilgrims-red-thread') &&
+				!next.expedition.effects.redThreadUsed
+			) {
+				next.expedition.effects.redThreadUsed = true;
+				next.expedition.effects.redThreadDefenseAdvantage = true;
+				for (const enemy of activeEnemies(next)) enemy.momentum = (enemy.momentum ?? 0) + 1;
+				events.push(
+					event(
+						next,
+						'feature-resolved',
+						"Pilgrim's Red Thread grants defense advantage; each hostile gains 1 momentum.",
+						'command'
+					)
+				);
+			}
 			events.push(
 				event(
 					next,
@@ -1587,7 +2126,39 @@ export function resolveCommand(
 			const difficulty = (target.sizeRank ?? 2) >= 3 ? 'hard' : 'normal';
 			const roll = rollStat(rng, 'heart', next.player.stats.heart, { difficulty });
 			trackQualifyingRoll(next, roll);
-			if (roll.success) target.rank = 'far';
+			if (roll.success) {
+				target.rank = 'far';
+				if (
+					next.expedition &&
+					hasRelic(next, 'raiders-counterweight') &&
+					!next.expedition.effects.counterweightUsed
+				) {
+					next.expedition.effects.counterweightUsed = true;
+					addMomentum(next, 1);
+					events.push(
+						event(
+							next,
+							'feature-resolved',
+							"Raider's Counterweight grants 1 momentum on the first successful Shove.",
+							'success'
+						)
+					);
+				}
+			} else if (next.expedition && hasRelic(next, 'raiders-counterweight')) {
+				const backlash = Math.max(1, modifier(next.player.stats.heart));
+				takeDamage(next, backlash);
+				events.push(
+					event(
+						next,
+						'damage-taken',
+						`Raider's Counterweight backlash deals ${backlash} damage.`,
+						'danger'
+					)
+				);
+				if (next.player.hp === 0) {
+					endRun(next, 'death', 'The counterweight breaks the delver. The run ends.', events);
+				}
+			}
 			events.push(
 				event(
 					next,
@@ -1640,6 +2211,21 @@ export function resolveCommand(
 		}
 		case 'choose':
 			resolveChoice(next, command.optionId, rng, events);
+			break;
+		case 'search':
+			resolveSearch(next, command.interactionId, rng, events);
+			break;
+		case 'buy':
+			resolvePurchase(next, command.stockId, events);
+			break;
+		case 'use-item':
+			resolveUseItem(next, command.itemId, rng, events);
+			break;
+		case 'equip':
+			resolveEquip(next, command.weaponId, events);
+			break;
+		case 'replace-relic':
+			resolveRelicReplacement(next, command, events);
 			break;
 		case 'end-turn':
 			if (next.player.rank === 'near') addMomentum(next, 1);

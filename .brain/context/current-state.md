@@ -1,5 +1,5 @@
 ---
-updated: "2026-07-29T23:17:22Z"
+updated: "2026-08-03T07:13:07Z"
 ---
 # Current State
 
@@ -31,6 +31,8 @@ Plan CLI v0.1.28 cannot derive execution slices directly from the GitHub-owned s
 
 Plan created [GitHub Issue #6](https://github.com/JimmyMcBride/five-fold-game/issues/6), `Combat readability and target selection`, as a ready spec. It covers pinned Tomb Record scrolling, accessible enemy HP bars, LegalCommand-backed radio targeting, selected-target command integration, responsive/reduced-motion behavior, and multi-enemy Playwright coverage. The owner approved the brief on 2026-07-29; implementation is authorized, while production deployment remains out of scope.
 
+Plan created [GitHub Issue #9](https://github.com/JimmyMcBride/five-fold-game/issues/9), `Procedural dungeon interactions, economy, and risk-reward relics`, as a ready spec. It defines `st-bozma-expedition-v3`, reusable room roles, one-shot searches with resumable ambushes, stable merchant stock, typed inventory, and four transparent benefit/cost relics. V1/v2 snapshot behavior remains pinned; migration and deployment are out of scope.
+
 ## Verification
 
 Issue #6 implementation is complete on
@@ -61,6 +63,17 @@ Fivefold review found no remaining correctness, data-exposure, determinism,
 authorization, accessibility, or scope findings. Canonical source whitespace
 remains intentionally byte-preserved.
 
+Issue #9 implementation is complete on
+`codex/procedural-dungeon-interactions-economy-and-risk-reward-relics`. V3 adds
+the deterministic eight-room role guarantees, seeded searches and stock,
+persisted ambush outcomes, atomic purchases, Healing Potion and Blue Hive Wax,
+two ordered relic slots with explicit replacement, all four relic bargains,
+sanitized projections, and history totals. A PR review follow-up initializes each
+class's second weapon as its reserve and verifies legal outside-combat swaps
+across all five classes plus the browser flow. The pinned v2 fixture, 73
+unit/integration tests, Svelte/TypeScript check, production build, and three
+desktop/mobile Playwright flows pass. No PocketBase migration is required.
+
 The branch contains deterministic eight-room generation, five fixed kits,
 selected canonical class features, fixed solo enemies/progression/finale,
 sanitized projections, Discord OAuth routes, versioned run APIs, idempotent
@@ -70,4 +83,6 @@ tokens cannot call run collections directly. PR #2 merged the implementation; fo
 
 ## Next Product Step
 
-Verify and apply the run-history composite-index migration, then merge follow-up PR #3. After that, tune the playable public-alpha experience from tester feedback.
+Merge the Issue #9 expedition PR after review. Production deployment remains a
+separate decision; the run-history composite-index migration is also still
+pending public application.

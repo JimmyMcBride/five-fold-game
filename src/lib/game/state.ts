@@ -1,5 +1,6 @@
 import { getClassKit } from './content/classes';
 import { generateDungeon } from './content/dungeon';
+import { createExpeditionState, itemDefinition } from './content/expedition';
 import { createRng, type RandomSource } from './rng';
 import type {
 	ClassName,
@@ -14,8 +15,13 @@ import type {
 export * from './model';
 
 export const LEGACY_CONTENT_VERSION = 'st-bozma-mvp-v1';
-export const CONTENT_VERSION = 'st-bozma-v0.8.5-v2';
-export const SUPPORTED_CONTENT_VERSIONS = [LEGACY_CONTENT_VERSION, CONTENT_VERSION] as const;
+export const V2_CONTENT_VERSION = 'st-bozma-v0.8.5-v2';
+export const CONTENT_VERSION = 'st-bozma-expedition-v3';
+export const SUPPORTED_CONTENT_VERSIONS = [
+	LEGACY_CONTENT_VERSION,
+	V2_CONTENT_VERSION,
+	CONTENT_VERSION
+] as const;
 
 export interface NewRunInput {
 	runId: string;
@@ -31,7 +37,10 @@ export function decodeGameState(value: unknown): GameState {
 	if (!value || typeof value !== 'object') throw new Error('Invalid game-state snapshot.');
 	const candidate = value as Partial<GameState>;
 	if (candidate.contentVersion === LEGACY_CONTENT_VERSION) return value as GameState;
-	if (candidate.contentVersion !== CONTENT_VERSION) {
+	if (
+		candidate.contentVersion !== V2_CONTENT_VERSION &&
+		candidate.contentVersion !== CONTENT_VERSION
+	) {
 		throw new UnsupportedContentVersionError(
 			`Unsupported content version: ${String(candidate.contentVersion)}`
 		);
@@ -55,7 +64,25 @@ export function decodeGameState(value: unknown): GameState {
 			throw new Error('Invalid v2 snapshot: AP state is missing.');
 		}
 	}
+	if (candidate.contentVersion === CONTENT_VERSION) {
+		const expedition = candidate.expedition;
+		if (
+			!expedition ||
+			typeof expedition !== 'object' ||
+			!Array.isArray(expedition.resolvedInteractionIds) ||
+			!expedition.inventory ||
+			!Array.isArray(expedition.inventory.relicIds) ||
+			!Array.isArray(expedition.inventory.questItemIds) ||
+			!Array.isArray(expedition.merchant?.stock)
+		) {
+			throw new Error('Invalid v3 snapshot: expedition state is missing.');
+		}
+	}
 	return value as GameState;
+}
+
+function usesV2Rules(contentVersion: string): boolean {
+	return contentVersion === V2_CONTENT_VERSION || contentVersion === CONTENT_VERSION;
 }
 
 function modifier(value: number): number {
@@ -93,11 +120,10 @@ function createPlayer(
 	const defense =
 		className === 'Priest' ? 'soul' : stats.reflex >= stats.heart ? 'reflex' : 'heart';
 
-	const healthRolls = contentVersion === CONTENT_VERSION ? [rng.int(1, 10)] : [];
-	const maxHp =
-		contentVersion === CONTENT_VERSION
-			? stats.heart + healthRolls[0] + modifier(stats.heart)
-			: stats.heart;
+	const healthRolls = usesV2Rules(contentVersion) ? [rng.int(1, 10)] : [];
+	const maxHp = usesV2Rules(contentVersion)
+		? stats.heart + healthRolls[0] + modifier(stats.heart)
+		: stats.heart;
 
 	return {
 		name,
@@ -119,7 +145,7 @@ function createPlayer(
 		equippedWeaponId: kit.weapons[0].id,
 		inventory: ['Ashwood torch', ...kit.weapons.map((weapon) => weapon.name)],
 		usedFeatures: [],
-		...(contentVersion === CONTENT_VERSION ? { healthRolls } : {}),
+		...(usesV2Rules(contentVersion) ? { healthRolls } : {}),
 		effects: initialEffects()
 	};
 }
@@ -128,9 +154,15 @@ export function createInitialState(input?: Partial<NewRunInput>): GameState {
 	const seed = input?.seed?.trim() || 'bozma-bootstrap';
 	const className = input?.className ?? 'Versant';
 	const contentVersion = input?.contentVersion ?? CONTENT_VERSION;
-	const graph = generateDungeon(seed);
+	const graph = generateDungeon(seed, contentVersion === CONTENT_VERSION);
 	const rng = createRng(`${seed}:commands`);
 	const player = createPlayer(input?.name?.trim() || 'Mara Vey', className, contentVersion, rng);
+	const expedition =
+		contentVersion === CONTENT_VERSION ? createExpeditionState(seed, graph) : undefined;
+	if (expedition) {
+		expedition.inventory.reserveWeaponId =
+			player.weapons.find((weapon) => weapon.id !== player.equippedWeaponId)?.id ?? null;
+	}
 
 	return {
 		runId: input?.runId ?? 'local-bozma-001',
@@ -152,7 +184,8 @@ export function createInitialState(input?: Partial<NewRunInput>): GameState {
 			manessaTurned: false,
 			bozmanSensor: false,
 			tombMercyAttempted: false
-		}
+		},
+		...(expedition ? { expedition } : {})
 	};
 }
 
@@ -163,7 +196,7 @@ export function statModifier(state: GameState, stat: StatName): number {
 export function summarizeRun(state: GameState): RunSummary | null {
 	if (state.status === 'active') return null;
 
-	return {
+	const summary: RunSummary = {
 		runId: state.runId,
 		characterName: state.player.name,
 		className: state.player.className,
@@ -177,4 +210,13 @@ export function summarizeRun(state: GameState): RunSummary | null {
 				!['Ashwood torch', ...state.player.weapons.map((weapon) => weapon.name)].includes(item)
 		)
 	};
+	if (state.contentVersion === CONTENT_VERSION && state.expedition) {
+		summary.goldFound = state.expedition.goldFound;
+		summary.goldSpent = state.expedition.goldSpent;
+		summary.relicsCarried = state.expedition.inventory.relicIds.map(
+			(relicId) => itemDefinition(relicId).name
+		);
+		summary.notableTreasure = [...state.expedition.inventory.notableTreasure];
+	}
+	return summary;
 }

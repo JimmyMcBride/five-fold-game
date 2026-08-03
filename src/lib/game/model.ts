@@ -13,6 +13,12 @@ export type GamePhase = 'exploration' | 'event' | 'loot' | 'combat' | 'victory' 
 export type RunStatus = 'active' | 'victory' | 'death' | 'objective-failure';
 export type Difficulty = 'normal' | 'hard' | 'critical';
 export type RollBand = 'failure' | 'normal' | 'hard' | 'critical';
+export type DungeonRole = 'combat' | 'interaction' | 'treasure' | 'merchant' | 'finale';
+export type ItemClassification = 'canonical' | 'adaptation';
+export type ConsumableId = 'healing-potion' | 'blue-hive-wax';
+export type QuestItemId = 'bozman-sensor';
+export type RelicId =
+	'hushglass-rosary' | 'pilgrims-red-thread' | 'raiders-counterweight' | 'grave-tappers-bell';
 
 export interface RollResult {
 	stat: StatName;
@@ -74,6 +80,9 @@ export interface RoomNode {
 	exits: RoomExit[];
 	kind: 'entry' | 'normal-combat' | 'quiet' | 'event' | 'loot' | 'finale';
 	encounterDefinitionId?: string;
+	role?: DungeonRole;
+	interactionIds?: string[];
+	merchantId?: string;
 }
 
 export interface RoomGraph {
@@ -106,6 +115,7 @@ export interface EnemyState extends EnemyDefinition {
 	stunnedTurns: number;
 	silencedTurns: number;
 	damagedPlayerLastTurn: boolean;
+	momentum?: number;
 }
 
 export interface CombatTurnState {
@@ -120,7 +130,7 @@ export interface CombatTurnState {
 
 export interface EncounterState {
 	id: string;
-	kind: 'normal' | 'finale';
+	kind: 'normal' | 'ambush' | 'finale';
 	enemies: EnemyState[];
 	turn: CombatTurnState;
 	decodeCount: number;
@@ -172,6 +182,84 @@ export interface RunFlags {
 	tombMercyAttempted: boolean;
 }
 
+export interface InteractionReward {
+	goldDice?: number;
+	consumableId?: ConsumableId;
+	questItemId?: QuestItemId;
+	relicId?: RelicId;
+	notableTreasure?: string;
+}
+
+export interface ExpeditionInteractionState {
+	id: string;
+	roomId: string;
+	kind: 'search' | 'item-gate';
+	label: string;
+	prompt: string;
+	warning: string;
+	stat?: StatName;
+	difficulty?: Difficulty;
+	requiredQuestItemId?: QuestItemId;
+	successReward: InteractionReward;
+	ambushEnemyIds?: string[];
+	source: string;
+	classification: ItemClassification;
+}
+
+export interface MerchantStockState {
+	id: string;
+	itemId: ConsumableId | QuestItemId | RelicId;
+	kind: 'consumable' | 'quest' | 'relic';
+	price: number;
+	quantity: number;
+}
+
+export interface MerchantState {
+	id: string;
+	roomId: string;
+	name: string;
+	introduction: string;
+	source: string;
+	classification: ItemClassification;
+	stock: MerchantStockState[];
+}
+
+export interface ExpeditionInventoryState {
+	consumables: Partial<Record<ConsumableId, number>>;
+	reserveWeaponId: string | null;
+	questItemIds: QuestItemId[];
+	relicIds: RelicId[];
+	pendingRelicId: RelicId | null;
+	notableTreasure: string[];
+}
+
+export interface ExpeditionEffectsState {
+	waxCoated: boolean;
+	hushglassUsed: boolean;
+	redThreadUsed: boolean;
+	redThreadDefenseAdvantage: boolean;
+	counterweightUsed: boolean;
+}
+
+export interface PendingRoomOutcome {
+	interactionId: string;
+	roomId: string;
+	kind: 'ambush';
+	goldReward: number;
+}
+
+export interface ExpeditionState {
+	interactions: Record<string, ExpeditionInteractionState>;
+	resolvedInteractionIds: string[];
+	pendingOutcome: PendingRoomOutcome | null;
+	merchant: MerchantState;
+	inventory: ExpeditionInventoryState;
+	effects: ExpeditionEffectsState;
+	normalVictories: number;
+	goldFound: number;
+	goldSpent: number;
+}
+
 export interface GameState {
 	runId: string;
 	seed: string;
@@ -189,6 +277,7 @@ export interface GameState {
 	encounter: EncounterState | null;
 	patchUpAvailable: boolean;
 	flags: RunFlags;
+	expedition?: ExpeditionState;
 }
 
 export interface RunSummary {
@@ -201,4 +290,8 @@ export interface RunSummary {
 	enemiesDefeated: number;
 	levelReached: number;
 	notableLoot: string[];
+	goldFound?: number;
+	goldSpent?: number;
+	relicsCarried?: string[];
+	notableTreasure?: string[];
 }

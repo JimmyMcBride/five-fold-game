@@ -8,7 +8,8 @@ import { createRng, type RandomSource } from './rng';
 import {
 	createInitialState as createVersionedInitialState,
 	LEGACY_CONTENT_VERSION,
-	type NewRunInput
+	type NewRunInput,
+	V2_CONTENT_VERSION
 } from './state';
 
 function createInitialState(input?: Partial<NewRunInput>) {
@@ -52,6 +53,34 @@ describe('resolveCommand', () => {
 		expect(fixture).toHaveLength(3556);
 		expect(createHash('sha256').update(fixture).digest('hex')).toBe(
 			'9d78e3eb1b0183c23ed9787c988c0b34e1e467ab8fbbad3e450cefedf8350973'
+		);
+	});
+
+	it('pins v2 initialization, events, and legal commands before v3 changes', () => {
+		const state = createVersionedInitialState({
+			seed: 'v2-compatibility',
+			className: 'Warrior',
+			contentVersion: V2_CONTENT_VERSION
+		});
+		const initialFixture = JSON.stringify({ state, legal: getLegalCommands(state) });
+		const result = resolveCommand(
+			state,
+			{ type: 'inspect' },
+			createRng('v2-compatibility:commands', state.rngCursor)
+		);
+		const resolvedFixture = JSON.stringify({
+			state: result.state,
+			events: result.events,
+			legal: getLegalCommands(result.state)
+		});
+
+		expect(initialFixture).toHaveLength(3323);
+		expect(createHash('sha256').update(initialFixture).digest('hex')).toBe(
+			'1d5cffe11e37d6c8d6750b1ce54b9ebb6f806e65a0b67a02a9206632ac41911d'
+		);
+		expect(resolvedFixture).toHaveLength(3562);
+		expect(createHash('sha256').update(resolvedFixture).digest('hex')).toBe(
+			'9aac7c05882dd0c39db09a45b8605768328b736869b46a47698d3f6ac992005e'
 		);
 	});
 

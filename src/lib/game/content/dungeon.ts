@@ -1,5 +1,6 @@
 import { createRng } from '../rng';
 import type { RoomGraph, RoomNode, RoomTemplate } from '../model';
+import { decorateExpeditionGraph } from './expedition';
 import { ENTRY_ROOM, FINALE_ROOM, MIDDLE_ROOMS } from './rooms';
 
 function shuffled<T>(values: readonly T[], seed: string): T[] {
@@ -32,7 +33,7 @@ function connect(from: RoomNode, to: RoomNode, label: string): void {
 	from.exits.push({ id: `${from.id}:${to.id}`, label, to: to.id });
 }
 
-export function generateDungeon(seed: string): RoomGraph {
+export function generateDungeon(seed: string, expedition = false): RoomGraph {
 	const selected = shuffled(MIDDLE_ROOMS, `${seed}:rooms`).slice(0, 6);
 	const enemyRng = createRng(`${seed}:encounters`);
 	const normalEnemyIds = ['hellhornet', 'scorched-raider', 'zeboul'];
@@ -57,7 +58,7 @@ export function generateDungeon(seed: string): RoomGraph {
 	connect(eventRoom, lootRoom, 'Follow the saint’s smoke');
 	connect(lootRoom, finale, 'Enter the resting chamber');
 
-	return {
+	const graph = {
 		entryId: entry.id,
 		finaleId: finale.id,
 		nodes: Object.fromEntries(
@@ -67,4 +68,5 @@ export function generateDungeon(seed: string): RoomGraph {
 		),
 		middleTemplateIds: selected.map((room) => room.id)
 	};
+	return expedition ? decorateExpeditionGraph(graph) : graph;
 }

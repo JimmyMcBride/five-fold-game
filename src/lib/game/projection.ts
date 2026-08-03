@@ -2,8 +2,9 @@ import type { LegalCommand } from './commands';
 import { getLegalCommands } from './engine';
 import type { GameEvent } from './events';
 import type { EnemyState, GameState, RunSummary, Stats } from './model';
+import { itemDefinition } from './content/expedition';
 import { ROOM_TEMPLATES } from './content/rooms';
-import { CONTENT_VERSION } from './state';
+import { CONTENT_VERSION, V2_CONTENT_VERSION } from './state';
 
 export interface PlayerProjection {
 	name: string;
@@ -58,6 +59,51 @@ export interface RunProjection {
 		usedActionIds: string[];
 		defenseLabel: 'Block' | 'Dodge' | 'Soul';
 	} | null;
+	expedition: {
+		inventory: {
+			consumables: {
+				id: string;
+				name: string;
+				quantity: number;
+				classification: string;
+				description: string;
+			}[];
+			questItems: { id: string; name: string; description: string }[];
+			relics: {
+				id: string;
+				name: string;
+				benefit: string;
+				drawback: string;
+			}[];
+			reserveWeapon: string | null;
+			pendingRelic: {
+				id: string;
+				name: string;
+				benefit: string;
+				drawback: string;
+			} | null;
+			waxCoated: boolean;
+		};
+		merchant: {
+			name: string;
+			introduction: string;
+			stock: {
+				id: string;
+				itemId: string;
+				name: string;
+				description: string;
+				benefit?: string;
+				drawback?: string;
+				classification: string;
+				price: number;
+				quantity: number;
+				affordable: boolean;
+				capacityConflict: boolean;
+				soldOut: boolean;
+			}[];
+		} | null;
+		pendingOutcome: boolean;
+	} | null;
 	commands: LegalCommand[];
 	events: GameEvent[];
 }
@@ -82,6 +128,10 @@ export function projectRun(
 	const weapon =
 		state.player.weapons.find((candidate) => candidate.id === state.player.equippedWeaponId) ??
 		state.player.weapons[0];
+	const expedition = state.expedition;
+	const reserve = state.player.weapons.find(
+		(candidate) => candidate.id === expedition?.inventory.reserveWeaponId
+	);
 
 	return {
 		runId: state.runId,
@@ -120,7 +170,8 @@ export function projectRun(
 		enemies: state.encounter?.enemies.filter((enemy) => enemy.hp > 0).map(projectEnemy) ?? [],
 		decodeCount: state.encounter?.decodeCount ?? 0,
 		combat:
-			state.encounter && state.contentVersion === CONTENT_VERSION
+			state.encounter &&
+			(state.contentVersion === V2_CONTENT_VERSION || state.contentVersion === CONTENT_VERSION)
 				? {
 						maxActionPoints: 2,
 						actionPoints: state.encounter.turn.actionPoints ?? 0,
@@ -133,6 +184,79 @@ export function projectRun(
 									: 'Soul'
 					}
 				: null,
+		expedition: expedition
+			? {
+					inventory: {
+						consumables: Object.entries(expedition.inventory.consumables)
+							.filter(([, quantity]) => (quantity ?? 0) > 0)
+							.map(([id, quantity]) => {
+								const definition = itemDefinition(id as 'healing-potion' | 'blue-hive-wax');
+								return {
+									id,
+									name: definition.name,
+									quantity: quantity ?? 0,
+									classification: definition.classification,
+									description: definition.description
+								};
+							}),
+						questItems: expedition.inventory.questItemIds.map((id) => {
+							const definition = itemDefinition(id);
+							return { id, name: definition.name, description: definition.description };
+						}),
+						relics: expedition.inventory.relicIds.map((id) => {
+							const definition = itemDefinition(id);
+							return {
+								id,
+								name: definition.name,
+								benefit: definition.benefit ?? '',
+								drawback: definition.drawback ?? ''
+							};
+						}),
+						reserveWeapon: reserve?.name ?? null,
+						pendingRelic: expedition.inventory.pendingRelicId
+							? (() => {
+									const definition = itemDefinition(expedition.inventory.pendingRelicId);
+									return {
+										id: definition.id,
+										name: definition.name,
+										benefit: definition.benefit ?? '',
+										drawback: definition.drawback ?? ''
+									};
+								})()
+							: null,
+						waxCoated: expedition.effects.waxCoated
+					},
+					merchant:
+						state.roomId === expedition.merchant.roomId
+							? {
+									name: expedition.merchant.name,
+									introduction: expedition.merchant.introduction,
+									stock: expedition.merchant.stock.map((stock) => {
+										const definition = itemDefinition(stock.itemId);
+										const capacityConflict =
+											(stock.kind === 'relic' && expedition.inventory.relicIds.length >= 2) ||
+											(stock.kind === 'quest' &&
+												expedition.inventory.questItemIds.includes('bozman-sensor'));
+										return {
+											id: stock.id,
+											itemId: stock.itemId,
+											name: definition.name,
+											description: definition.description,
+											...(definition.benefit ? { benefit: definition.benefit } : {}),
+											...(definition.drawback ? { drawback: definition.drawback } : {}),
+											classification: definition.classification,
+											price: stock.price,
+											quantity: stock.quantity,
+											affordable: state.player.gold >= stock.price,
+											capacityConflict,
+											soldOut: stock.quantity <= 0
+										};
+									})
+								}
+							: null,
+					pendingOutcome: expedition.pendingOutcome !== null
+				}
+			: null,
 		commands: getLegalCommands(state),
 		events
 	};
