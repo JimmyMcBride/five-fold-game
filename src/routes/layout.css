@@ -617,7 +617,8 @@ input {
 
 .encounter-list {
 	min-height: 0;
-	overflow-y: auto;
+	flex: 0 0 auto;
+	overflow: visible;
 	border-block: 1px solid var(--color-clot);
 	background: color-mix(in oklch, var(--color-clot) 10%, var(--color-docket));
 }
@@ -744,20 +745,19 @@ input {
 	margin: 0;
 	padding: 0;
 	overflow-y: auto;
-	overflow-anchor: none;
 	font-size: 0.75rem;
 	line-height: 1.55;
 	list-style: none;
 }
 
 .log-scroll.has-unread .command-log {
-	padding-top: 3.5rem;
+	padding-bottom: 3.5rem;
 }
 
 .log-jump {
 	position: absolute;
 	right: 0.5rem;
-	top: 0.5rem;
+	bottom: 0.5rem;
 	display: grid;
 	width: 2.75rem;
 	height: 2.75rem;
