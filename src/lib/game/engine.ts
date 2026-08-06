@@ -562,6 +562,14 @@ function commandKey(command: GameCommand): string {
 	}
 }
 
+function targetsEnemy(command: GameCommand): boolean {
+	return (
+		command.type === 'attack' ||
+		command.type === 'shove' ||
+		(command.type === 'use-feature' && command.targetId !== undefined)
+	);
+}
+
 function normalizeCommand(state: GameState, command: GameCommand): GameCommand {
 	if (!isV2(state)) return command;
 	if (command.type === 'attack' && command.economy === undefined) {
@@ -1127,6 +1135,18 @@ function enemyPhase(state: GameState, rng: RandomSource, events: GameEvent[]): v
 			}
 			continue;
 		}
+		if (isV4(state) && state.player.effects.hidden) {
+			enemy.turnsTaken += 1;
+			events.push(
+				event(
+					state,
+					'feature-resolved',
+					`${enemy.name} searches the shadows but cannot find a target.`,
+					'neutral'
+				)
+			);
+			continue;
+		}
 
 		enemy.turnsTaken += 1;
 		enemyAttack(state, enemy, rng, events);
@@ -1194,7 +1214,7 @@ function enemyPhase(state: GameState, rng: RandomSource, events: GameEvent[]): v
 		state.encounter.turn.actionPoints = 2;
 		state.encounter.turn.usedActionIds = [];
 	}
-	state.player.effects.hidden = false;
+	if (!isV4(state)) state.player.effects.hidden = false;
 	if (
 		state.player.effects.guidanceExpiresAfterTurn !== null &&
 		state.encounter.turn.playerTurnsCompleted >= state.player.effects.guidanceExpiresAfterTurn
@@ -2069,6 +2089,8 @@ export function resolveCommand(
 	const next = cloneState(state);
 	next.turn += 1;
 	const events: GameEvent[] = [];
+	const revealsHiddenAfterResolution =
+		isV4(next) && next.player.effects.hidden && targetsEnemy(command);
 
 	switch (command.type) {
 		case 'inspect':
@@ -2266,6 +2288,7 @@ export function resolveCommand(
 			resolveShootingStarIfDue(next, rng, events);
 			enemyPhase(next, rng, events);
 	}
+	if (revealsHiddenAfterResolution) next.player.effects.hidden = false;
 
 	const snapshot = rng.snapshot?.();
 	if (snapshot) next.rngCursor = snapshot.cursor;
