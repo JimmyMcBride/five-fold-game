@@ -23,7 +23,8 @@ import {
 	CONTENT_VERSION,
 	LEGACY_CONTENT_VERSION,
 	SUPPORTED_CONTENT_VERSIONS,
-	V2_CONTENT_VERSION
+	V2_CONTENT_VERSION,
+	V3_CONTENT_VERSION
 } from './state';
 
 export interface CommandResolution {
@@ -50,10 +51,18 @@ function activeEnemies(state: GameState): EnemyState[] {
 }
 
 function isV2(state: GameState): boolean {
-	return state.contentVersion === V2_CONTENT_VERSION || state.contentVersion === CONTENT_VERSION;
+	return (
+		state.contentVersion === V2_CONTENT_VERSION ||
+		state.contentVersion === V3_CONTENT_VERSION ||
+		state.contentVersion === CONTENT_VERSION
+	);
 }
 
-function isV3(state: GameState): boolean {
+function isExpedition(state: GameState): boolean {
+	return state.contentVersion === V3_CONTENT_VERSION || state.contentVersion === CONTENT_VERSION;
+}
+
+function isV4(state: GameState): boolean {
 	return state.contentVersion === CONTENT_VERSION;
 }
 
@@ -65,7 +74,7 @@ function hasValidContentState(state: GameState): boolean {
 	if (!hasSupportedContentVersion(state)) return false;
 	if (!isV2(state)) return true;
 	if (!Array.isArray(state.player.healthRolls)) return false;
-	if (isV3(state) && !state.expedition) return false;
+	if (isExpedition(state) && !state.expedition) return false;
 	if (!state.encounter) return true;
 	return (
 		Number.isInteger(state.encounter.turn.actionPoints) &&
@@ -161,7 +170,7 @@ function canAcquireStock(state: GameState, stockId: string): boolean {
 
 function expeditionCommands(state: GameState): LegalCommand[] {
 	const expedition = state.expedition;
-	if (!isV3(state) || !expedition || state.phase !== 'exploration') return [];
+	if (!isExpedition(state) || !expedition || state.phase !== 'exploration') return [];
 	const node = state.graph.nodes[state.roomId];
 	const commands: LegalCommand[] = [];
 
@@ -323,9 +332,22 @@ export function getLegalCommands(state: GameState): LegalCommand[] {
 	const commands: LegalCommand[] = [inspect];
 	const turn = state.encounter.turn;
 	const weapon = equippedWeapon(state);
+	const reserve = state.player.weapons.find(
+		(candidate) => candidate.id === state.expedition?.inventory.reserveWeaponId
+	);
+
+	if (isV4(state) && reserve && economyAvailable(turn, 'action', 'equip')) {
+		commands.push({
+			id: `equip:${reserve.id}`,
+			label: `Equip ${reserve.name}`,
+			detail: 'Action // Spend 1 AP to swap equipped and reserve weapons.',
+			command: { type: 'equip', weaponId: reserve.id },
+			economy: 'action'
+		});
+	}
 
 	if (
-		isV3(state) &&
+		isExpedition(state) &&
 		(state.expedition?.inventory.consumables['healing-potion'] ?? 0) > 0 &&
 		state.player.hp < state.player.maxHp &&
 		economyAvailable(turn, 'action', 'item:healing-potion')
@@ -878,7 +900,7 @@ function resolveEquip(state: GameState, weaponId: string, events: GameEvent[]): 
 	const previous = state.player.equippedWeaponId;
 	state.player.equippedWeaponId = weaponId;
 	state.expedition.inventory.reserveWeaponId = previous;
-	state.player.rank = weapon.rank;
+	if (state.phase !== 'combat') state.player.rank = weapon.rank;
 	events.push(event(state, 'weapon-equipped', `${weapon.name} equipped.`, 'command'));
 }
 
@@ -1207,7 +1229,7 @@ function startEncounter(
 	const enemies = definitionIds.map((id, index) =>
 		createEnemy(id, String(index + 1), state.contentVersion === LEGACY_CONTENT_VERSION)
 	);
-	if (isV3(state)) {
+	if (isExpedition(state)) {
 		for (const enemy of enemies) enemy.momentum = 0;
 	}
 	const raiderPresent = enemies.some((enemy) => enemy.id === 'scorched-raider');
@@ -1274,7 +1296,7 @@ function enterRoom(state: GameState, rng: RandomSource, events: GameEvent[]): vo
 		return;
 	}
 
-	if (isV3(state)) {
+	if (isExpedition(state)) {
 		if (node.role === 'combat' && node.encounterDefinitionId) {
 			startEncounter(state, 'normal', [node.encounterDefinitionId], rng, events);
 			return;
@@ -1452,6 +1474,11 @@ function defeatEnemy(
 			)
 		);
 		state.expedition.effects.waxCoated = false;
+		if (isV4(state)) {
+			state.player.experience += 5;
+			events.push(event(state, 'experience-gained', 'Victory grants 5 XP.', 'success'));
+			if (state.player.level === 1 && state.player.experience >= 10) levelUp(state, rng, events);
+		}
 		return;
 	}
 	state.player.experience += 5;
@@ -1459,7 +1486,7 @@ function defeatEnemy(
 		event(state, 'combat-ended', 'The room falls quiet. Patch Up is available.', 'success')
 	);
 	events.push(event(state, 'experience-gained', 'Victory grants 5 XP.', 'success'));
-	if (isV3(state) && state.expedition) {
+	if (isExpedition(state) && state.expedition) {
 		state.expedition.normalVictories += 1;
 		if (state.expedition.normalVictories === 1) {
 			addGold(state, 20, events, 'First required victory');
@@ -2223,6 +2250,7 @@ export function resolveCommand(
 			resolveUseItem(next, command.itemId, rng, events);
 			break;
 		case 'equip':
+			if (next.phase === 'combat' && isV4(next)) consumeEconomy(next, 'action', 'equip');
 			resolveEquip(next, command.weaponId, events);
 			break;
 		case 'replace-relic':

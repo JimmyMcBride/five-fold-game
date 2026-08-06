@@ -16,10 +16,12 @@ export * from './model';
 
 export const LEGACY_CONTENT_VERSION = 'st-bozma-mvp-v1';
 export const V2_CONTENT_VERSION = 'st-bozma-v0.8.5-v2';
-export const CONTENT_VERSION = 'st-bozma-expedition-v3';
+export const V3_CONTENT_VERSION = 'st-bozma-expedition-v3';
+export const CONTENT_VERSION = 'st-bozma-expedition-v4';
 export const SUPPORTED_CONTENT_VERSIONS = [
 	LEGACY_CONTENT_VERSION,
 	V2_CONTENT_VERSION,
+	V3_CONTENT_VERSION,
 	CONTENT_VERSION
 ] as const;
 
@@ -39,6 +41,7 @@ export function decodeGameState(value: unknown): GameState {
 	if (candidate.contentVersion === LEGACY_CONTENT_VERSION) return value as GameState;
 	if (
 		candidate.contentVersion !== V2_CONTENT_VERSION &&
+		candidate.contentVersion !== V3_CONTENT_VERSION &&
 		candidate.contentVersion !== CONTENT_VERSION
 	) {
 		throw new UnsupportedContentVersionError(
@@ -64,7 +67,10 @@ export function decodeGameState(value: unknown): GameState {
 			throw new Error('Invalid v2 snapshot: AP state is missing.');
 		}
 	}
-	if (candidate.contentVersion === CONTENT_VERSION) {
+	if (
+		candidate.contentVersion === V3_CONTENT_VERSION ||
+		candidate.contentVersion === CONTENT_VERSION
+	) {
 		const expedition = candidate.expedition;
 		if (
 			!expedition ||
@@ -82,7 +88,15 @@ export function decodeGameState(value: unknown): GameState {
 }
 
 function usesV2Rules(contentVersion: string): boolean {
-	return contentVersion === V2_CONTENT_VERSION || contentVersion === CONTENT_VERSION;
+	return (
+		contentVersion === V2_CONTENT_VERSION ||
+		contentVersion === V3_CONTENT_VERSION ||
+		contentVersion === CONTENT_VERSION
+	);
+}
+
+function usesExpedition(contentVersion: string): boolean {
+	return contentVersion === V3_CONTENT_VERSION || contentVersion === CONTENT_VERSION;
 }
 
 function modifier(value: number): number {
@@ -154,11 +168,12 @@ export function createInitialState(input?: Partial<NewRunInput>): GameState {
 	const seed = input?.seed?.trim() || 'bozma-bootstrap';
 	const className = input?.className ?? 'Versant';
 	const contentVersion = input?.contentVersion ?? CONTENT_VERSION;
-	const graph = generateDungeon(seed, contentVersion === CONTENT_VERSION);
+	const graph = generateDungeon(seed, usesExpedition(contentVersion));
 	const rng = createRng(`${seed}:commands`);
 	const player = createPlayer(input?.name?.trim() || 'Mara Vey', className, contentVersion, rng);
-	const expedition =
-		contentVersion === CONTENT_VERSION ? createExpeditionState(seed, graph) : undefined;
+	const expedition = usesExpedition(contentVersion)
+		? createExpeditionState(seed, graph)
+		: undefined;
 	if (expedition) {
 		expedition.inventory.reserveWeaponId =
 			player.weapons.find((weapon) => weapon.id !== player.equippedWeaponId)?.id ?? null;
@@ -210,7 +225,7 @@ export function summarizeRun(state: GameState): RunSummary | null {
 				!['Ashwood torch', ...state.player.weapons.map((weapon) => weapon.name)].includes(item)
 		)
 	};
-	if (state.contentVersion === CONTENT_VERSION && state.expedition) {
+	if (usesExpedition(state.contentVersion) && state.expedition) {
 		summary.goldFound = state.expedition.goldFound;
 		summary.goldSpent = state.expedition.goldSpent;
 		summary.relicsCarried = state.expedition.inventory.relicIds.map(

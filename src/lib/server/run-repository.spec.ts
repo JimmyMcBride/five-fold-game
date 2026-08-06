@@ -192,7 +192,7 @@ describe('run repository command contract', () => {
 		expect(await repository.history('owner-1')).toHaveLength(1);
 	});
 
-	it('commits a v3 purchase once and rejects duplicate or stale economy writes atomically', async () => {
+	it('commits an expedition purchase once and rejects duplicate or stale economy writes atomically', async () => {
 		const repository = createMemoryRunRepository();
 		let projection = await repository.create('owner-1', {
 			...newRun,
@@ -237,6 +237,49 @@ describe('run repository command contract', () => {
 		expect(accepted.projection.expedition?.inventory.consumables).toContainEqual(
 			expect.objectContaining({ id: 'blue-hive-wax', quantity: 1 })
 		);
+		expect(duplicate.kind).toBe('duplicate');
+		expect(duplicate.projection).toEqual(accepted.projection);
+		expect(stale.kind).toBe('stale');
+		expect(stale.projection).toEqual({ ...accepted.projection, events: [] });
+	});
+
+	it('commits a combat weapon swap once and rejects duplicate or stale retries', async () => {
+		const repository = createMemoryRunRepository();
+		let projection = await repository.create('owner-1', {
+			...newRun,
+			className: 'Scout',
+			seed: 'combat-equip-repository'
+		});
+		const move = projection.commands.find((entry) => entry.command.type === 'move')?.command;
+		if (!move) throw new Error('Expected initial move.');
+		const moved = await repository.command('owner-1', {
+			runId: newRun.runId,
+			commandId: 'combat-equip-move',
+			expectedVersion: projection.version,
+			command: move
+		});
+		if (moved.kind !== 'accepted') throw new Error(`Unexpected ${moved.kind}.`);
+		projection = moved.projection;
+
+		const equip = projection.commands.find((entry) => entry.command.type === 'equip')?.command;
+		if (!equip || equip.type !== 'equip') throw new Error('Expected combat equip.');
+		const envelope = {
+			runId: newRun.runId,
+			commandId: 'combat-equip-command',
+			expectedVersion: projection.version,
+			command: equip
+		};
+		const accepted = await repository.command('owner-1', envelope);
+		const duplicate = await repository.command('owner-1', envelope);
+		const stale = await repository.command('owner-1', {
+			...envelope,
+			commandId: 'combat-equip-stale'
+		});
+
+		expect(accepted.kind).toBe('accepted');
+		expect(accepted.projection.player.equippedWeapon).toBe('Dagger');
+		expect(accepted.projection.combat?.actionPoints).toBe(1);
+		expect(accepted.projection.combat?.usedActionIds).toContain('equip');
 		expect(duplicate.kind).toBe('duplicate');
 		expect(duplicate.projection).toEqual(accepted.projection);
 		expect(stale.kind).toBe('stale');

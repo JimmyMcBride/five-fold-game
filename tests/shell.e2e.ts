@@ -1,4 +1,9 @@
 import { expect, test } from '@playwright/test';
+import type { LegalCommand } from '../src/lib/game/commands';
+import { getLegalCommands, resolveCommand } from '../src/lib/game/engine';
+import type { GameEvent } from '../src/lib/game/events';
+import { createRng } from '../src/lib/game/rng';
+import { CONTENT_VERSION, createInitialState } from '../src/lib/game/state';
 import type { RunProjection } from '../src/lib/game/projection';
 
 test('public visitor signs in, creates a character, moves, and resumes the run', async ({
@@ -254,40 +259,42 @@ test('multi-enemy targeting and Tomb Record scrolling preserve player intent', a
 	await expect(farTarget).toBeChecked();
 
 	const tombRecord = page.locator('.command-log');
+	await expect(tombRecord.locator('li').first()).toContainText(
+		'Alternate target enemy-far receives the attack.'
+	);
 	await tombRecord.evaluate((element) => {
-		element.scrollTop = 0;
+		element.scrollTop = element.scrollHeight;
 		element.dispatchEvent(new Event('scroll'));
 	});
-	const reviewedPosition = await tombRecord.evaluate((element) => element.scrollTop);
+	const reviewedBottomGap = await tombRecord.evaluate(
+		(element) => element.scrollHeight - element.scrollTop - element.clientHeight
+	);
 	await page.getByRole('button', { name: /^Inspect/ }).click();
 	await expect(page.getByRole('button', { name: 'Jump to latest tomb record' })).toBeVisible();
+	await expect(tombRecord.locator('li').first()).toContainText('Unseen ledger entry');
 	await expect
-		.poll(() => tombRecord.evaluate((element) => element.scrollTop))
-		.toBe(reviewedPosition);
+		.poll(() =>
+			tombRecord.evaluate(
+				(element) => element.scrollHeight - element.scrollTop - element.clientHeight
+			)
+		)
+		.toBe(reviewedBottomGap);
 
 	await page.getByRole('button', { name: 'Jump to latest tomb record' }).click();
 	await expect(page.getByRole('button', { name: 'Jump to latest tomb record' })).toHaveCount(0);
 	await expect
-		.poll(() =>
-			tombRecord.evaluate(
-				(element) => element.scrollHeight - element.scrollTop - element.clientHeight
-			)
-		)
+		.poll(() => tombRecord.evaluate((element) => element.scrollTop))
 		.toBeLessThanOrEqual(24);
 
 	await page.getByRole('button', { name: /^Inspect/ }).click();
 	await expect
-		.poll(() =>
-			tombRecord.evaluate(
-				(element) => element.scrollHeight - element.scrollTop - element.clientHeight
-			)
-		)
+		.poll(() => tombRecord.evaluate((element) => element.scrollTop))
 		.toBeLessThanOrEqual(24);
 	await expect(page.getByRole('button', { name: 'Jump to latest tomb record' })).toHaveCount(0);
 
 	await page.emulateMedia({ reducedMotion: 'reduce' });
 	await tombRecord.evaluate((element) => {
-		element.scrollTop = 0;
+		element.scrollTop = element.scrollHeight;
 		element.dispatchEvent(new Event('scroll'));
 	});
 	await page.getByRole('button', { name: /^Inspect/ }).click();
@@ -306,7 +313,161 @@ test('multi-enemy targeting and Tomb Record scrolling preserve player intent', a
 		.toBe(true);
 });
 
-test('v3 merchant, inventory, warnings, item use, and relic replacement remain accessible', async ({
+test('combat reserve-weapon swap costs 1 AP and updates available actions', async ({
+	context,
+	page
+}) => {
+	await context.addCookies([
+		{
+			name: 'ff_test_user',
+			value: 'combat-equip-test-user',
+			domain: '127.0.0.1',
+			path: '/'
+		}
+	]);
+	await page.goto('/');
+	await page.getByLabel('Character name').fill('Nettle Vane');
+	await page.getByLabel('Seed optional').fill('combat-equip-seed');
+	await page.getByText('Scout', { exact: true }).click();
+	await page.getByRole('button', { name: 'Begin run' }).click();
+	await page.getByRole('button', { name: /Climb toward the shrine/ }).click();
+
+	await expect(page.getByText('2 / 2 AP')).toBeVisible();
+	await expect(page.getByText('near', { exact: true }).first()).toBeVisible();
+	const equip = page.getByRole('button', { name: /^Equip Dagger/ });
+	await expect(equip).toContainText('Spend 1 AP');
+	await equip.click();
+
+	await expect(page.getByText('1 / 2 AP')).toBeVisible();
+	await expect(page.getByText('Used: Equip')).toBeVisible();
+	await expect(page.getByText('Dagger', { exact: true }).first()).toBeVisible();
+	await expect(page.getByRole('button', { name: /^Equip Shortbow/ })).toHaveCount(0);
+	await expect(page.getByRole('button', { name: /^Attack/ })).toContainText(
+		'Dagger // Reflex // Near'
+	);
+	await expect(page.getByText('near', { exact: true }).first()).toBeVisible();
+});
+
+test('noisy ambush victory grants 5 XP through the persisted browser flow', async ({
+	context,
+	page
+}) => {
+	await context.addCookies([
+		{
+			name: 'ff_test_user',
+			value: 'ambush-xp-test-user',
+			domain: '127.0.0.1',
+			path: '/'
+		}
+	]);
+	const seed = 'v3-Scout-22';
+	await page.goto('/');
+	await page.getByLabel('Character name').fill('Vesper Flint');
+	await page.getByLabel('Seed optional').fill(seed);
+	await page.getByText('Scout', { exact: true }).click();
+	await page.getByRole('button', { name: 'Begin run' }).click();
+
+	let local = createInitialState({
+		name: 'Vesper Flint',
+		className: 'Scout',
+		seed,
+		contentVersion: CONTENT_VERSION
+	});
+	const rng = createRng(`${seed}:commands`, local.rngCursor);
+	const riskyRoomId = local.graph.middleTemplateIds[2];
+	let version = 0;
+	let ambushTriggered = false;
+	let xpBeforeAmbush = 0;
+	let ambushVictoryEvents: GameEvent[] = [];
+
+	for (let step = 0; step < 300 && local.status === 'active'; step += 1) {
+		const legal = getLegalCommands(local);
+		let selected: LegalCommand | undefined;
+		if (local.phase === 'exploration') {
+			selected =
+				legal.find(
+					(candidate) =>
+						candidate.command.type === 'buy' && candidate.command.stockId === 'stock:blue-hive-wax'
+				) ??
+				legal.find((candidate) => candidate.command.type === 'use-item') ??
+				legal.find((candidate) => candidate.command.type === 'search') ??
+				legal.find(
+					(candidate) =>
+						candidate.command.type === 'patch-up' && local.player.hp < local.player.maxHp
+				) ??
+				legal.find((candidate) => {
+					const command = candidate.command;
+					if (command.type !== 'move') return false;
+					return local.graph.nodes[local.roomId].exits.some(
+						(exit) => exit.id === command.exitId && exit.to === riskyRoomId
+					);
+				}) ??
+				legal.find((candidate) => candidate.command.type === 'move');
+		} else if (local.phase === 'combat') {
+			selected =
+				legal.find(
+					(candidate) =>
+						candidate.command.type === 'use-feature' &&
+						candidate.command.featureId === 'sharpshooter'
+				) ??
+				legal.find(
+					(candidate) =>
+						candidate.command.type === 'use-feature' &&
+						candidate.command.featureId === 'surprise-attack'
+				) ??
+				legal.find(
+					(candidate) => candidate.command.type === 'attack' && candidate.economy !== 'maneuver'
+				) ??
+				legal.find((candidate) => candidate.command.type === 'close-distance') ??
+				legal.find((candidate) => candidate.command.type === 'end-turn');
+		}
+		if (!selected) throw new Error(`No deterministic command for ${local.phase}.`);
+
+		const response = await page.evaluate(
+			async ({ command, expectedVersion, commandId }) => {
+				const active = await fetch('/api/runs').then((result) => result.json());
+				const result = await fetch(`/api/runs/${active.active.runId}/commands`, {
+					method: 'POST',
+					headers: { 'content-type': 'application/json' },
+					body: JSON.stringify({ command, expectedVersion, commandId })
+				});
+				return result.json();
+			},
+			{
+				command: selected.command,
+				expectedVersion: version,
+				commandId: `ambush-flow-${String(step).padStart(4, '0')}`
+			}
+		);
+		expect(response.kind).toBe('accepted');
+		version = Number(response.projection.version);
+
+		const resolution = resolveCommand(local, selected.command, rng);
+		if (resolution.events.some((event) => event.kind === 'ambush-triggered')) {
+			ambushTriggered = true;
+			xpBeforeAmbush = local.player.experience;
+		}
+		local = resolution.state;
+		if (ambushTriggered && resolution.events.some((event) => event.kind === 'experience-gained')) {
+			ambushVictoryEvents = response.projection.events;
+			break;
+		}
+	}
+
+	expect(ambushTriggered).toBe(true);
+	expect(local.player.experience).toBe(xpBeforeAmbush + 5);
+	expect(ambushVictoryEvents).toEqual(
+		expect.arrayContaining([
+			expect.objectContaining({ kind: 'experience-gained', text: 'Victory grants 5 XP.' })
+		])
+	);
+	await page.reload();
+	await expect(
+		page.getByText(String(local.player.experience), { exact: true }).first()
+	).toBeVisible();
+});
+
+test('expedition merchant, inventory, warnings, item use, and relic replacement remain accessible', async ({
 	context,
 	page
 }) => {
