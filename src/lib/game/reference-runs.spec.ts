@@ -233,7 +233,7 @@ describe('curated deterministic reference run', () => {
 		}
 	});
 
-	it('replays five v3 expeditions through search, economy, relic/ambush, items, and finale', () => {
+	it('replays five v4 expeditions through search, economy, relic/ambush, items, and finale', () => {
 		const fixtures = {
 			Warrior: { seed: 'v3-Warrior-39', risky: true },
 			Scout: { seed: 'v3-Scout-22', risky: true },

@@ -4,7 +4,7 @@ import type { GameEvent } from './events';
 import type { EnemyState, GameState, RunSummary, Stats } from './model';
 import { itemDefinition } from './content/expedition';
 import { ROOM_TEMPLATES } from './content/rooms';
-import { CONTENT_VERSION, V2_CONTENT_VERSION } from './state';
+import { CONTENT_VERSION, V2_CONTENT_VERSION, V3_CONTENT_VERSION } from './state';
 
 export interface PlayerProjection {
 	name: string;
@@ -171,7 +171,9 @@ export function projectRun(
 		decodeCount: state.encounter?.decodeCount ?? 0,
 		combat:
 			state.encounter &&
-			(state.contentVersion === V2_CONTENT_VERSION || state.contentVersion === CONTENT_VERSION)
+			(state.contentVersion === V2_CONTENT_VERSION ||
+				state.contentVersion === V3_CONTENT_VERSION ||
+				state.contentVersion === CONTENT_VERSION)
 				? {
 						maxActionPoints: 2,
 						actionPoints: state.encounter.turn.actionPoints ?? 0,

@@ -1,5 +1,5 @@
 ---
-updated: '2026-07-30T01:47:31Z'
+updated: '2026-08-06T18:46:56Z'
 ---
 
 # Architecture
@@ -43,12 +43,17 @@ and the request-scoped service-token client for locked run collections.
 idempotency, resume, and history.
 
 Game snapshots dispatch explicitly by `contentVersion`.
-`st-bozma-expedition-v3` is the new-run default and extends the v2 rules with
-server-owned dungeon interactions, pending ambush outcomes, stable merchant
-stock, typed inventory, and temporary relic effects. `st-bozma-v0.8.5-v2` and
-`st-bozma-mvp-v1` retain their historical state shapes and resolver behavior.
-Persisted snapshots are decoded and validated before replay; unknown or
-incomplete versions do not mutate.
+`st-bozma-expedition-v4` is the new-run default. It retains the v3 expedition
+model while adding 5 XP to ambush victories and a one-AP, once-per-turn combat
+weapon swap that never changes rank. `st-bozma-expedition-v3`,
+`st-bozma-v0.8.5-v2`, and `st-bozma-mvp-v1` retain their historical state shapes
+and resolver behavior. Persisted snapshots are decoded and validated before
+replay; unknown or incomplete versions do not mutate.
+
+Tomb Record events stay chronological in projections and persistence. The
+Svelte shell renders a reversed view, treats the top as the pinned latest edge,
+and compensates scroll height when new entries arrive above a player reviewing
+older events.
 
 ## Persistence Direction
 

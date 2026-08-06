@@ -1,5 +1,5 @@
 ---
-updated: '2026-07-30T01:55:03Z'
+updated: '2026-08-06T18:46:56Z'
 ---
 
 # Workflows
@@ -57,6 +57,10 @@ the eight-room guarantees over a seed matrix, and replay one deterministic
 expedition per class through search, economy, item use, and signature combat.
 Browser changes cover both desktop and mobile inventory, merchant, warning, and
 relic-replacement states.
+
+V4 changes must retain explicit v3 fixtures, exercise ambush XP and combat equip
+legality without altering v3 replay, and cover newest-first Tomb Record behavior
+at top-pinned and manually reviewed scroll positions.
 
 ## Closeout
 

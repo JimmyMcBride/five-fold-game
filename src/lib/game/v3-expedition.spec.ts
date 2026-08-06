@@ -5,7 +5,7 @@ import { getLegalCommands, resolveCommand } from './engine';
 import { projectRun } from './projection';
 import { CLASS_NAMES, type GameState } from './model';
 import type { RandomSource } from './rng';
-import { CONTENT_VERSION, createInitialState, decodeGameState, summarizeRun } from './state';
+import { createInitialState, decodeGameState, summarizeRun, V3_CONTENT_VERSION } from './state';
 
 function sequenceRng(...initialValues: number[]): RandomSource {
 	const values = [...initialValues];
@@ -29,7 +29,7 @@ function expeditionState(
 	seed = 'expedition-tests',
 	className: GameState['player']['className'] = 'Warrior'
 ) {
-	return createInitialState({ seed, className, contentVersion: CONTENT_VERSION });
+	return createInitialState({ seed, className, contentVersion: V3_CONTENT_VERSION });
 }
 
 function roomForInteraction(state: GameState, fragment: string): string {

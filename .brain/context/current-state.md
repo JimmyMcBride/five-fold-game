@@ -1,5 +1,5 @@
 ---
-updated: '2026-08-03T07:36:16Z'
+updated: '2026-08-06T18:46:56Z'
 ---
 
 # Current State
@@ -102,3 +102,16 @@ migration is also still pending public application.
 ## Issue #11 Critical Ability Damage
 
 Canonical critical-hit doubling now applies to the full dice-plus-modifier packet for Bolt, Black Cloud, and Hushing Flame. Tongues of Fire applies and stores the same doubled Voice-modifier damage for its immediate and delayed ticks. Deathblows and Blind/Silence riders remain unchanged. Focused resolver coverage, all 84 unit tests, production build, and all three Playwright flows pass on `codex/issue-11-critical-ability-damage`.
+
+## Issue #16 Expedition Follow-up
+
+Implementation is complete on
+`codex/rewarded-ambushes-combat-weapon-swaps-and-newest-first-tomb-record`.
+New runs use `st-bozma-expedition-v4`: ambush victories grant the existing 5 XP
+plus authored gold, and the equipped/reserve weapon swap is a one-AP combat
+Action with one-use-per-turn lockout and no rank movement. V1-v3 behavior stays
+pinned. Tomb Record presentation is newest-first at the top while stored events
+remain chronological; manual review position, unread jump, reduced motion, and
+mobile containment remain covered. Lint, Svelte/TypeScript, 91 unit/integration
+tests, production build, and five Playwright flows pass. No PocketBase migration
+or production deployment is included.
