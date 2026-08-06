@@ -90,7 +90,9 @@
 	}
 
 	function scrollLogToLatest(behavior: ScrollBehavior = 'auto') {
-		logElement?.scrollTo({ top: logElement.scrollHeight, behavior });
+		const element = logElement;
+		if (!element) return;
+		element.scrollTo({ top: element.scrollHeight, behavior });
 	}
 
 	function handleLogScroll() {
