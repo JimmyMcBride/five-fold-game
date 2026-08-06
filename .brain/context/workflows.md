@@ -1,5 +1,5 @@
 ---
-updated: '2026-08-06T18:46:56Z'
+updated: '2026-08-06T21:17:09Z'
 ---
 
 # Workflows
@@ -59,8 +59,10 @@ Browser changes cover both desktop and mobile inventory, merchant, warning, and
 relic-replacement states.
 
 V4 changes must retain explicit v3 fixtures, exercise ambush XP and combat equip
-legality without altering v3 replay, and cover newest-first Tomb Record behavior
-at top-pinned and manually reviewed scroll positions.
+legality without altering v3 replay, and cover chronological Tomb Record behavior
+at bottom-pinned and manually reviewed scroll positions. Browser coverage also
+keeps the complete enemy selector visible without its own scrollbar on desktop
+and mobile.
 
 ## Closeout
 

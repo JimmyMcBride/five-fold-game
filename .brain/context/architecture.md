@@ -1,5 +1,5 @@
 ---
-updated: '2026-08-06T18:46:56Z'
+updated: '2026-08-06T21:17:09Z'
 ---
 
 # Architecture
@@ -50,10 +50,11 @@ weapon swap that never changes rank. `st-bozma-expedition-v3`,
 and resolver behavior. Persisted snapshots are decoded and validated before
 replay; unknown or incomplete versions do not mutate.
 
-Tomb Record events stay chronological in projections and persistence. The
-Svelte shell renders a reversed view, treats the top as the pinned latest edge,
-and compensates scroll height when new entries arrive above a player reviewing
-older events.
+Tomb Record events stay chronological in projections, persistence, and the
+Svelte shell. The bottom is the pinned latest edge: live-following players
+auto-scroll as new entries arrive, while players reviewing older entries keep
+their reading position and receive a jump-to-latest control. The bounded enemy
+selector remains intrinsic-height and never owns an independent scrollbar.
 
 ## Persistence Direction
 

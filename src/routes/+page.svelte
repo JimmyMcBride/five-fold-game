@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import { tick } from 'svelte';
 	import type { PageData } from './$types';
 	import type { GameCommand, LegalCommand } from '$lib/game/commands';
 	import type { GameEvent } from '$lib/game/events';
@@ -35,8 +34,6 @@
 	let logUpdatePending = false;
 	let runResetPending = false;
 	let wasPinnedBeforeLogUpdate = true;
-	let logScrollHeightBeforeUpdate = 0;
-	let logScrollTopBeforeUpdate = 0;
 
 	const playerHealth = $derived(
 		healthProgress(projection?.player.hp ?? 0, projection?.player.maxHp ?? 0)
@@ -50,7 +47,6 @@
 	const visibleCommands = $derived(
 		commandsForSelectedTarget(projection?.commands ?? [], activeSelectedEnemyId)
 	);
-	const visibleLog = $derived(log.map((entry, sourceIndex) => ({ entry, sourceIndex })).reverse());
 	const commandGroups = $derived.by(() => {
 		const groups: [string, LegalCommand[]][] = [];
 		for (const command of visibleCommands) {
@@ -90,11 +86,13 @@
 
 	function logIsPinned() {
 		if (!logElement) return true;
-		return logElement.scrollTop <= 24;
+		return logElement.scrollHeight - logElement.scrollTop - logElement.clientHeight <= 24;
 	}
 
 	function scrollLogToLatest(behavior: ScrollBehavior = 'auto') {
-		logElement?.scrollTo({ top: 0, behavior });
+		const element = logElement;
+		if (!element) return;
+		element.scrollTo({ top: element.scrollHeight, behavior });
 	}
 
 	function handleLogScroll() {
@@ -112,11 +110,7 @@
 		const currentLogLength = log.length;
 		runResetPending = runId !== observedRunId;
 		logUpdatePending = !runResetPending && currentLogLength > observedLogLength;
-		if (logUpdatePending) {
-			wasPinnedBeforeLogUpdate = logIsPinned();
-			logScrollHeightBeforeUpdate = logElement?.scrollHeight ?? 0;
-			logScrollTopBeforeUpdate = logElement?.scrollTop ?? 0;
-		}
+		if (logUpdatePending) wasPinnedBeforeLogUpdate = logIsPinned();
 	});
 
 	$effect(() => {
@@ -132,11 +126,6 @@
 				unreadLogEntries = false;
 			} else {
 				unreadLogEntries = true;
-				void tick().then(() => {
-					if (!logElement || !unreadLogEntries) return;
-					const insertedHeight = logElement.scrollHeight - logScrollHeightBeforeUpdate;
-					logElement.scrollTop = logScrollTopBeforeUpdate + insertedHeight;
-				});
 			}
 		}
 
@@ -704,7 +693,7 @@
 								<span class="turn-mark">00</span><span>The ledger waits for a command.</span>
 							</li>
 						{/if}
-						{#each visibleLog as { entry, sourceIndex } (`${entry.turn}-${entry.kind}-${sourceIndex}`)}
+						{#each log as entry, index (`${entry.turn}-${entry.kind}-${index}`)}
 							<li class={entry.tone}>
 								<span class="turn-mark">{String(entry.turn).padStart(2, '0')}</span>
 								<span>{entry.text}</span>
@@ -718,7 +707,7 @@
 							aria-label="Jump to latest tomb record"
 							onclick={jumpToLatest}
 						>
-							<span aria-hidden="true">↑</span>
+							<span aria-hidden="true">↓</span>
 						</button>
 					{/if}
 				</div>

@@ -71,7 +71,7 @@ test('public visitor signs in, creates a character, moves, and resumes the run',
 	await expect(page.locator('#room-title')).toHaveText(roomHeading ?? '');
 });
 
-test('multi-enemy targeting and Tomb Record scrolling preserve player intent', async ({
+test('fixed enemy targeting and bottom-pinned Tomb Record preserve player intent', async ({
 	context,
 	page
 }) => {
@@ -225,10 +225,11 @@ test('multi-enemy targeting and Tomb Record scrolling preserve player intent', a
 
 	const nearTarget = page.getByRole('radio', { name: 'Target Grave Hound' });
 	const farTarget = page.getByRole('radio', { name: 'Target Ash Warden' });
+	const guardedTarget = page.getByRole('radio', { name: 'Target Veiled Saint' });
 	await expect(nearTarget).toBeChecked();
 	await expect(farTarget).not.toBeChecked();
 	await expect(page.getByRole('radio', { name: 'Target Distant Cantor' })).toBeDisabled();
-	await expect(page.getByRole('radio', { name: 'Target Veiled Saint' })).toBeDisabled();
+	await expect(guardedTarget).toBeDisabled();
 	await expect(page.getByText('Unavailable', { exact: true })).toBeVisible();
 	await expect(page.getByText('Guarded', { exact: true })).toBeVisible();
 	await expect(page.getByRole('progressbar', { name: 'Ash Warden health' })).toHaveAttribute(
@@ -240,6 +241,17 @@ test('multi-enemy targeting and Tomb Record scrolling preserve player intent', a
 		'18 / 44 HP'
 	);
 	await expect(page.getByText('18 / 44 HP', { exact: true })).toBeVisible();
+	const encounterList = page.locator('.encounter-list');
+	await expect(encounterList).toHaveCSS('overflow-y', 'visible');
+	await expect(encounterList.locator('.encounter')).toHaveCount(4);
+	await expect
+		.poll(() =>
+			encounterList.evaluate((element) => element.scrollHeight <= element.clientHeight + 1)
+		)
+		.toBe(true);
+	for (const enemyName of ['Ash Warden', 'Grave Hound', 'Distant Cantor', 'Veiled Saint']) {
+		await expect(page.getByRole('progressbar', { name: `${enemyName} health` })).toBeVisible();
+	}
 	await expect(page.getByRole('button', { name: /^Attack Grave Hound/ })).toBeVisible();
 	await expect(page.getByRole('button', { name: /^Attack Ash Warden/ })).toHaveCount(0);
 	await expect(page.getByRole('button', { name: /^Guidance/ })).toBeVisible();
@@ -259,51 +271,78 @@ test('multi-enemy targeting and Tomb Record scrolling preserve player intent', a
 	await expect(farTarget).toBeChecked();
 
 	const tombRecord = page.locator('.command-log');
-	await expect(tombRecord.locator('li').first()).toContainText(
+	const ledgerLines = tombRecord.locator('li').filter({ hasText: 'Ledger line' });
+	await expect(ledgerLines.first()).toContainText('Ledger line 01');
+	await expect(ledgerLines.last()).toContainText('Ledger line 36');
+	await expect(tombRecord.locator('li').last()).toContainText(
 		'Alternate target enemy-far receives the attack.'
 	);
-	await tombRecord.evaluate((element) => {
-		element.scrollTop = element.scrollHeight;
-		element.dispatchEvent(new Event('scroll'));
-	});
-	const reviewedBottomGap = await tombRecord.evaluate(
-		(element) => element.scrollHeight - element.scrollTop - element.clientHeight
-	);
-	await page.getByRole('button', { name: /^Inspect/ }).click();
-	await expect(page.getByRole('button', { name: 'Jump to latest tomb record' })).toBeVisible();
-	await expect(tombRecord.locator('li').first()).toContainText('Unseen ledger entry');
 	await expect
 		.poll(() =>
 			tombRecord.evaluate(
 				(element) => element.scrollHeight - element.scrollTop - element.clientHeight
 			)
 		)
-		.toBe(reviewedBottomGap);
+		.toBeLessThanOrEqual(24);
+	await tombRecord.evaluate((element) => {
+		element.scrollTop = 0;
+		element.dispatchEvent(new Event('scroll'));
+	});
+	const reviewedPosition = await tombRecord.evaluate((element) => element.scrollTop);
+	await page.getByRole('button', { name: /^Inspect/ }).click();
+	await expect(page.getByRole('button', { name: 'Jump to latest tomb record' })).toBeVisible();
+	await expect(tombRecord.locator('li').last()).toContainText('Unseen ledger entry');
+	await expect
+		.poll(() => tombRecord.evaluate((element) => element.scrollTop))
+		.toBe(reviewedPosition);
 
 	await page.getByRole('button', { name: 'Jump to latest tomb record' }).click();
 	await expect(page.getByRole('button', { name: 'Jump to latest tomb record' })).toHaveCount(0);
 	await expect
-		.poll(() => tombRecord.evaluate((element) => element.scrollTop))
+		.poll(() =>
+			tombRecord.evaluate(
+				(element) => element.scrollHeight - element.scrollTop - element.clientHeight
+			)
+		)
 		.toBeLessThanOrEqual(24);
 
 	await page.getByRole('button', { name: /^Inspect/ }).click();
 	await expect
-		.poll(() => tombRecord.evaluate((element) => element.scrollTop))
+		.poll(() =>
+			tombRecord.evaluate(
+				(element) => element.scrollHeight - element.scrollTop - element.clientHeight
+			)
+		)
 		.toBeLessThanOrEqual(24);
 	await expect(page.getByRole('button', { name: 'Jump to latest tomb record' })).toHaveCount(0);
 
 	await page.emulateMedia({ reducedMotion: 'reduce' });
 	await tombRecord.evaluate((element) => {
-		element.scrollTop = element.scrollHeight;
+		element.scrollTop = 0;
 		element.dispatchEvent(new Event('scroll'));
 	});
 	await page.getByRole('button', { name: /^Inspect/ }).click();
 	await expect(page.getByRole('button', { name: 'Jump to latest tomb record' })).toBeVisible();
 	await expect(tombRecord).toHaveCSS('scroll-behavior', 'auto');
 	await page.getByRole('button', { name: 'Jump to latest tomb record' }).click();
+	await expect
+		.poll(() =>
+			tombRecord.evaluate(
+				(element) => element.scrollHeight - element.scrollTop - element.clientHeight
+			)
+		)
+		.toBeLessThanOrEqual(24);
 
 	await page.setViewportSize({ width: 390, height: 844 });
 	await expect(farTarget).toBeVisible();
+	await expect(guardedTarget).toBeVisible();
+	await expect(page.getByRole('progressbar', { name: 'Veiled Saint health' })).toBeVisible();
+	await expect(encounterList).toHaveCSS('overflow-y', 'visible');
+	await expect
+		.poll(() =>
+			encounterList.evaluate((element) => element.scrollHeight <= element.clientHeight + 1)
+		)
+		.toBe(true);
 	await expect
 		.poll(() =>
 			page.evaluate(
