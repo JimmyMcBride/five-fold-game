@@ -2,14 +2,17 @@ import { env } from '$env/dynamic/private';
 import type PocketBase from 'pocketbase';
 import { ClientResponseError, type RecordModel } from 'pocketbase';
 import type { GameCommand } from '$lib/game/commands';
-import { resolveCommand } from '$lib/game/engine';
-import type { GameState, RunSummary } from '$lib/game/model';
+import { resolveGameCommand } from '$lib/game/resolver';
+import { isPartyGameState, type AnyGameState, type RunSummary } from '$lib/game/model';
 import { projectRun, type RunProjection } from '$lib/game/projection';
 import { createRng } from '$lib/game/rng';
 import {
 	createInitialState,
+	createPartyInitialState,
 	decodeGameState,
+	summarizePartyRun,
 	summarizeRun,
+	type NewPartyRunInput,
 	type NewRunInput
 } from '$lib/game/state';
 import { createPocketBaseService } from './pocketbase';
@@ -29,14 +32,14 @@ export type CommandResult =
 
 export interface RunRepository {
 	getActive(ownerId: string): Promise<RunProjection | null>;
-	create(ownerId: string, input: NewRunInput): Promise<RunProjection>;
+	create(ownerId: string, input: NewRunInput | NewPartyRunInput): Promise<RunProjection>;
 	command(ownerId: string, envelope: CommandEnvelope): Promise<CommandResult>;
 	history(ownerId: string): Promise<RunSummary[]>;
 }
 
 interface StoredRun {
 	ownerId: string;
-	state: GameState;
+	state: AnyGameState;
 	version: number;
 	commands: Map<string, RunProjection>;
 }
@@ -52,9 +55,9 @@ class MemoryRunRepository implements RunRepository {
 		return run ? projectRun(run.state, run.version) : null;
 	}
 
-	async create(ownerId: string, input: NewRunInput): Promise<RunProjection> {
+	async create(ownerId: string, input: NewRunInput | NewPartyRunInput): Promise<RunProjection> {
 		if (this.activeRuns.has(ownerId)) throw new RunConflictError('An active run already exists.');
-		const state = createInitialState(input);
+		const state = 'party' in input ? createPartyInitialState(input) : createInitialState(input);
 		this.runs.set(state.runId, { ownerId, state, version: 0, commands: new Map() });
 		this.activeRuns.set(ownerId, state.runId);
 		return projectRun(state, 0, [
@@ -77,7 +80,7 @@ class MemoryRunRepository implements RunRepository {
 		}
 
 		const rng = createRng(`${run.state.seed}:commands`, run.state.rngCursor);
-		const resolution = resolveCommand(run.state, envelope.command, rng);
+		const resolution = resolveGameCommand(run.state, envelope.command, rng);
 		if (resolution.events[0]?.kind === 'command-rejected') {
 			return {
 				kind: 'rejected',
@@ -89,7 +92,9 @@ class MemoryRunRepository implements RunRepository {
 		const projection = projectRun(run.state, run.version, resolution.events);
 		run.commands.set(envelope.commandId, projection);
 
-		const summary = summarizeRun(run.state);
+		const summary = isPartyGameState(run.state)
+			? summarizePartyRun(run.state)
+			: summarizeRun(run.state);
 		if (summary) {
 			this.records.set(ownerId, [summary, ...(this.records.get(ownerId) ?? [])]);
 			this.activeRuns.delete(ownerId);
@@ -109,7 +114,7 @@ interface GameRunRecord extends RecordModel {
 	snapshot: unknown;
 	seed: string;
 	rng_cursor: number;
-	status: GameState['status'];
+	status: AnyGameState['status'];
 	outcome: string;
 	version: number;
 	content_version: string;
@@ -138,8 +143,8 @@ class PocketBaseRunRepository implements RunRepository {
 		}
 	}
 
-	async create(ownerId: string, input: NewRunInput): Promise<RunProjection> {
-		const state = createInitialState(input);
+	async create(ownerId: string, input: NewRunInput | NewPartyRunInput): Promise<RunProjection> {
+		const state = 'party' in input ? createPartyInitialState(input) : createInitialState(input);
 		try {
 			await this.pb.collection('game_runs').create({
 				id: state.runId,
@@ -173,7 +178,7 @@ class PocketBaseRunRepository implements RunRepository {
 		}
 
 		const rng = createRng(`${snapshot.seed}:commands`, snapshot.rngCursor);
-		const resolution = resolveCommand(snapshot, envelope.command, rng);
+		const resolution = resolveGameCommand(snapshot, envelope.command, rng);
 		if (resolution.events[0]?.kind === 'command-rejected') {
 			return {
 				kind: 'rejected',
@@ -182,7 +187,9 @@ class PocketBaseRunRepository implements RunRepository {
 		}
 		const nextVersion = run.version + 1;
 		const projection = projectRun(resolution.state, nextVersion, resolution.events);
-		const summary = summarizeRun(resolution.state);
+		const summary = isPartyGameState(resolution.state)
+			? summarizePartyRun(resolution.state)
+			: summarizeRun(resolution.state);
 		const batch = this.pb.createBatch();
 
 		batch.collection('run_actions').create({

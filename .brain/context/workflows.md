@@ -1,7 +1,6 @@
 ---
-updated: '2026-08-06T21:17:09Z'
+updated: "2026-08-07T07:49:27Z"
 ---
-
 # Workflows
 
 ## Startup
@@ -63,6 +62,13 @@ legality without altering v3 replay, and cover chronological Tomb Record behavio
 at bottom-pinned and manually reviewed scroll positions. Browser coverage also
 keeps the complete enemy selector visible without its own scrollbar on desktop
 and mobile.
+
+V5 party changes must retain all v1-v4 fixtures; validate every one-, two-, and
+three-class combination; cover actor ownership, individual initiative/AP, ally
+targets, formation, Down/healing/wipe behavior, shared resources, authored
+party-size composition, snapshot/idempotency/stale safety, and party summaries.
+Browser coverage includes keyboard roster/rank selection, active-member handoff,
+ally commands, refresh/resume, member inspection, and mobile containment.
 
 ## Closeout
 

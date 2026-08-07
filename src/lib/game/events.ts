@@ -33,6 +33,7 @@ export type GameEventKind =
 	| 'level-gained'
 	| 'decode-advanced'
 	| 'turn-ended'
+	| 'member-downed'
 	| 'run-ended';
 
 export interface GameEvent {
@@ -41,4 +42,6 @@ export interface GameEvent {
 	tone: EventTone;
 	turn: number;
 	roll?: RollResult;
+	actorId?: string;
+	targetId?: string;
 }

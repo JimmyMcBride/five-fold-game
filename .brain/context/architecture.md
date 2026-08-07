@@ -43,7 +43,10 @@ and the request-scoped service-token client for locked run collections.
 idempotency, resume, and history.
 
 Game snapshots dispatch explicitly by `contentVersion`.
-`st-bozma-expedition-v4` is the new-run default. It retains the v3 expedition
+`st-bozma-party-v5` is the new-run default. It adds one-to-three fixed prebuilts,
+stable member IDs, individual initiative/AP/progression, Down/full-party defeat,
+an exploration leader, and shared expedition resources through a separate
+party-native resolver. `st-bozma-expedition-v4` retains the v3 expedition
 model while adding 5 XP to ambush victories and a one-AP, once-per-turn combat
 weapon swap that never changes rank. `st-bozma-expedition-v3`,
 `st-bozma-v0.8.5-v2`, and `st-bozma-mvp-v1` retain their historical state shapes

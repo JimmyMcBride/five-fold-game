@@ -2,7 +2,7 @@
   "repo": "JimmyMcBride/five-fold-game",
   "repo_url": "https://github.com/JimmyMcBride/five-fold-game",
   "default_branch": "main",
-  "last_updated_at": "2026-07-29T20:54:12Z",
+  "last_updated_at": "2026-08-07T07:13:14Z",
   "stories": {},
   "planning": {
     "combat-readability-and-target-selection": {
@@ -17,6 +17,19 @@
       "entry_mode": "local_promotion",
       "source_mode": "local",
       "updated_at": "2026-07-29T20:54:12Z"
+    },
+    "selectable-prebuilt-parties-for-solo-controlled-dungeon-runs": {
+      "slug": "selectable-prebuilt-parties-for-solo-controlled-dungeon-runs",
+      "kind": "spec",
+      "title": "Selectable prebuilt parties for solo-controlled dungeon runs",
+      "issue_number": 18,
+      "issue_url": "https://github.com/JimmyMcBride/five-fold-game/issues/18",
+      "remote_state": "open",
+      "readiness": "ready",
+      "ownership_mode": "github",
+      "entry_mode": "local_promotion",
+      "source_mode": "local",
+      "updated_at": "2026-08-07T07:13:14Z"
     },
     "single-player-procedural-st-bozma-roguelike": {
       "slug": "single-player-procedural-st-bozma-roguelike",

@@ -559,6 +559,8 @@ function commandKey(command: GameCommand): string {
 			return JSON.stringify([command.type, command.stat]);
 		case 'choose':
 			return JSON.stringify([command.type, command.optionId]);
+		case 'set-leader':
+			return JSON.stringify([command.type, command.memberId]);
 	}
 }
 
@@ -1043,10 +1045,15 @@ function enemyAttack(
 	}
 }
 
-function enemyPhase(state: GameState, rng: RandomSource, events: GameEvent[]): void {
+function enemyPhase(
+	state: GameState,
+	rng: RandomSource,
+	events: GameEvent[],
+	resolveEnemies = true
+): void {
 	if (!state.encounter) return;
 
-	for (const enemy of activeEnemies(state)) {
+	for (const enemy of resolveEnemies ? activeEnemies(state) : []) {
 		if (state.status !== 'active') return;
 		enemy.damagedPlayerLastTurn = false;
 		if (enemy.stunnedTurns > 0) {
@@ -2059,6 +2066,22 @@ function inspectText(state: GameState): string {
 	return `${room.description} ${state.graph.nodes[state.roomId].exits.length} revealed passage${state.graph.nodes[state.roomId].exits.length === 1 ? '' : 's'}.`;
 }
 
+export function resolvePlayerTurnEnd(
+	state: GameState,
+	rng: RandomSource,
+	events: GameEvent[],
+	resolveEnemies = true
+): void {
+	if (state.player.rank === 'near') addMomentum(state, 1);
+	if (state.player.className === 'Scout' && state.player.effects.hidden) addMomentum(state, 2);
+	if (state.player.className === 'Versant') {
+		addMomentum(state, Math.min(activeEnemies(state).length, modifier(state.player.stats.voice)));
+	}
+	events.push(event(state, 'turn-ended', 'You yield the turn.', 'command'));
+	resolveShootingStarIfDue(state, rng, events);
+	enemyPhase(state, rng, events, resolveEnemies);
+}
+
 export function resolveCommand(
 	state: GameState,
 	inputCommand: GameCommand,
@@ -2279,14 +2302,10 @@ export function resolveCommand(
 			resolveRelicReplacement(next, command, events);
 			break;
 		case 'end-turn':
-			if (next.player.rank === 'near') addMomentum(next, 1);
-			if (next.player.className === 'Scout' && next.player.effects.hidden) addMomentum(next, 2);
-			if (next.player.className === 'Versant') {
-				addMomentum(next, Math.min(activeEnemies(next).length, modifier(next.player.stats.voice)));
-			}
-			events.push(event(next, 'turn-ended', 'You yield the turn.', 'command'));
-			resolveShootingStarIfDue(next, rng, events);
-			enemyPhase(next, rng, events);
+			resolvePlayerTurnEnd(next, rng, events);
+			break;
+		case 'set-leader':
+			break;
 	}
 	if (revealsHiddenAfterResolution) next.player.effects.hidden = false;
 
