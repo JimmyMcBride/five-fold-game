@@ -33,6 +33,17 @@ function legal<T extends GameCommand['type']>(
 	return command as Extract<GameCommand, { type: T }>;
 }
 
+function feature(
+	state: GameState,
+	featureId: string
+): Extract<GameCommand, { type: 'use-feature' }> {
+	const command = getLegalCommands(state).find(
+		(entry) => entry.command.type === 'use-feature' && entry.command.featureId === featureId
+	)?.command;
+	if (!command || command.type !== 'use-feature') throw new Error(`Missing ${featureId} feature.`);
+	return command;
+}
+
 function combatState(contentVersion: string): GameState {
 	const state = createInitialState({
 		seed: `combat-swap-${contentVersion}`,
@@ -169,5 +180,107 @@ describe('st-bozma expedition follow-up version', () => {
 		expect(result.events).toEqual([
 			expect.objectContaining({ kind: 'command-rejected', tone: 'danger' })
 		]);
+	});
+
+	it('keeps a successful Sneak Hidden across enemy turns and blocks every targeted attack', () => {
+		const state = combatState(CONTENT_VERSION);
+		if (!state.encounter) throw new Error('Expected encounter.');
+		state.encounter.enemies.push(createEnemy('hellhornet', '2'));
+		const originalHp = state.player.hp;
+
+		const sneaked = resolveCommand(state, feature(state, 'sneak'), sequenceRng(50));
+		expect(sneaked.state.player.effects.hidden).toBe(true);
+		expect(state.player.effects.hidden).toBe(false);
+
+		const enemyRng = sequenceRng(50, 1);
+		const hiddenTurn = resolveCommand(sneaked.state, { type: 'end-turn' }, enemyRng);
+		expect(hiddenTurn.state.player.hp).toBe(originalHp);
+		expect(hiddenTurn.state.player.effects.hidden).toBe(true);
+		expect(hiddenTurn.state.player.momentum).toBe(2);
+		expect(hiddenTurn.state.encounter?.enemies.map((enemy) => enemy.turnsTaken)).toEqual([1, 1]);
+		expect(hiddenTurn.events.filter((entry) => entry.kind === 'damage-taken')).toHaveLength(0);
+		expect(
+			hiddenTurn.events.filter((entry) => entry.text.includes('cannot find a target'))
+		).toHaveLength(2);
+		expect(enemyRng.snapshot?.().cursor).toBe(0);
+
+		const attack = resolveCommand(
+			hiddenTurn.state,
+			legal(hiddenTurn.state, 'attack'),
+			sequenceRng(80, 90)
+		);
+		expect(attack.events.find((entry) => entry.kind === 'attack-resolved')?.roll?.rolls).toEqual([
+			80, 90
+		]);
+		expect(attack.state.player.effects.hidden).toBe(false);
+	});
+
+	it('leaves the Scout exposed when Sneak fails', () => {
+		const state = combatState(CONTENT_VERSION);
+		state.player.effects.hidden = true;
+
+		const result = resolveCommand(state, feature(state, 'sneak'), sequenceRng(80));
+
+		expect(result.state.player.effects.hidden).toBe(false);
+		expect(result.events).toEqual(
+			expect.arrayContaining([
+				expect.objectContaining({ text: 'Sneak roll 80: exposed.', tone: 'danger' })
+			])
+		);
+	});
+
+	it('reveals a Hidden Scout after a failed Shove', () => {
+		const state = combatState(CONTENT_VERSION);
+		state.player.rank = 'near';
+		state.player.effects.hidden = true;
+
+		const result = resolveCommand(state, legal(state, 'shove'), sequenceRng(95));
+
+		expect(result.state.player.effects.hidden).toBe(false);
+		expect(result.events.some((entry) => entry.text.includes('Shove roll 95 fails'))).toBe(true);
+	});
+
+	it('uses Hidden for Surprise Attack bonus damage before revealing the Scout', () => {
+		const state = combatState(CONTENT_VERSION);
+		if (!state.encounter) throw new Error('Expected encounter.');
+		state.player.effects.hidden = true;
+		state.encounter.turn.maneuverAvailable = true;
+
+		const result = resolveCommand(
+			state,
+			feature(state, 'surprise-attack'),
+			sequenceRng(50, 60, 5, 1, 1, 1, 1, 1, 1, 1)
+		);
+
+		expect(result.state.player.effects.hidden).toBe(false);
+		expect(result.state.encounter?.enemies[0].hp).toBe(17);
+		expect(result.events.find((entry) => entry.kind === 'attack-resolved')?.text).toContain(
+			'19 damage'
+		);
+	});
+
+	it('allows Barnabe Decode to continue while the Scout is Hidden', () => {
+		const state = combatState(CONTENT_VERSION);
+		if (!state.encounter) throw new Error('Expected encounter.');
+		state.encounter.enemies = [createEnemy('barnabe')];
+		state.encounter.enemies[0].turnsTaken = 1;
+		state.player.effects.hidden = true;
+
+		const result = resolveCommand(state, { type: 'end-turn' }, sequenceRng());
+
+		expect(result.state.encounter?.decodeCount).toBe(1);
+		expect(result.state.player.effects.hidden).toBe(true);
+		expect(result.events.some((entry) => entry.kind === 'decode-advanced')).toBe(true);
+		expect(result.events.some((entry) => entry.text.includes('cannot find a target'))).toBe(false);
+	});
+
+	it('retains historical v3 Hidden round-reset behavior', () => {
+		const state = combatState(V3_CONTENT_VERSION);
+		state.player.effects.hidden = true;
+
+		const result = resolveCommand(state, { type: 'end-turn' }, sequenceRng());
+
+		expect(result.state.player.effects.hidden).toBe(false);
+		expect(result.events.some((entry) => entry.kind === 'rank-shifted')).toBe(true);
 	});
 });

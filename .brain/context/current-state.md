@@ -1,5 +1,5 @@
 ---
-updated: '2026-08-06T18:46:56Z'
+updated: '2026-08-06T21:46:10Z'
 ---
 
 # Current State
@@ -115,3 +115,7 @@ remain chronological; manual review position, unread jump, reduced motion, and
 mobile containment remain covered. Lint, Svelte/TypeScript, 91 unit/integration
 tests, production build, and five Playwright flows pass. No PocketBase migration
 or production deployment is included.
+
+## Issue #20 Canonical Hidden
+
+Issue #20 implementation is complete on `codex/issue-20-canonical-hidden`. In current v4 runs, successful Sneak now preserves Hidden across rounds, blocks hostile single-target attacks without consuming defense RNG, narrates hostiles unable to find a target, and reveals the Scout after targeting an enemy. Weapon attacks retain Hidden advantage, Surprise Attack retains its pre-existing-advantage damage, Ambusher and Barnabe Decode remain unchanged, and v1-v3 resolver behavior stays pinned. Lint, Svelte/TypeScript checks, 97 unit/reference tests, production build, and five Playwright flows pass.
