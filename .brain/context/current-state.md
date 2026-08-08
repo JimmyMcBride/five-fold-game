@@ -1,5 +1,5 @@
 ---
-updated: '2026-08-08T00:37:09Z'
+updated: '2026-08-08T01:32:33Z'
 ---
 
 # Current State
@@ -138,3 +138,7 @@ PR #26 review follow-up makes malformed v5 template IDs fail closed, validates
 optional item targets at the request boundary, and resolves Tongues of Fire and
 Sacred Light at the owning member's actual start-of-turn activation while
 preserving solo timing and end-of-next-turn Shooting Star behavior.
+
+## Email/password authentication
+
+Implementation is complete on `codex/email-password-auth`. Public visitors can sign in with email/password, create an account with a required display name and eight-character password, or continue through Discord. Registration signs the new account in immediately; email verification remains disabled. Credentials stay inside server POST requests and the request-scoped PocketBase client, while browser route data retains only the sanitized session. No PocketBase schema migration or deployment-specific callback is required. Lint, Svelte/TypeScript checks, 107 unit tests, production build, and all five Playwright flows pass.

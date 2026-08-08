@@ -225,6 +225,80 @@ h1 {
 	margin-top: 1.5rem;
 }
 
+.auth-options {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	margin-top: 2rem;
+	border: 1px solid var(--color-border);
+}
+
+.auth-panel {
+	padding: 1.25rem;
+}
+
+.auth-panel + .auth-panel {
+	border-left: 1px solid var(--color-border);
+}
+
+.auth-panel h2 {
+	margin-top: 0.35rem;
+	font-size: clamp(1.35rem, 2vw, 2rem);
+}
+
+.auth-form {
+	display: grid;
+	gap: 0.9rem;
+	margin-top: 1.25rem;
+}
+
+.auth-form label {
+	display: grid;
+	gap: 0.45rem;
+	color: var(--color-ash);
+	font-size: 0.72rem;
+}
+
+.auth-form label span {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: 0.75rem;
+}
+
+.auth-form label small {
+	font-family: var(--font-mono);
+	font-size: 0.58rem;
+}
+
+.auth-form .primary-action {
+	width: 100%;
+	margin-top: 0.35rem;
+}
+
+.auth-divider {
+	display: flex;
+	align-items: center;
+	gap: 0.75rem;
+	margin-top: 1.5rem;
+	color: var(--color-ash);
+	font-family: var(--font-mono);
+	font-size: 0.62rem;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+	flex: 1;
+	height: 1px;
+	background: var(--color-border);
+	content: '';
+}
+
+.auth-divider + .discord-action {
+	margin-top: 1rem;
+}
+
 .creation-shell {
 	width: min(100%, 94rem);
 	min-height: 100vh;
@@ -1068,6 +1142,15 @@ input {
 	.access-copy,
 	.access-docket {
 		padding: 1.25rem;
+	}
+
+	.auth-options {
+		grid-template-columns: 1fr;
+	}
+
+	.auth-panel + .auth-panel {
+		border-top: 1px solid var(--color-border);
+		border-left: 0;
 	}
 
 	.creation-header,

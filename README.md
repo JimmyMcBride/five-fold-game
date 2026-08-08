@@ -2,11 +2,11 @@
 
 Browser-based, text-first, turn-based dungeon crawler built with SvelteKit, Svelte 5, TypeScript, Bun, Tailwind CSS, and PocketBase.
 
-The current alpha implementation supports public Discord OAuth, run-scoped
-character creation for all five classes, a seeded eight-room St. Bozma dungeon,
-solo combat and progression, autosave/resume, and immutable run summaries. The
-pure engine remains framework-independent and persisted commands are
-server-authoritative.
+The current alpha implementation supports public email/password accounts and
+Discord OAuth, run-scoped character creation for all five classes, a seeded
+eight-room St. Bozma dungeon, solo combat and progression, autosave/resume, and
+immutable run summaries. The pure engine remains framework-independent and
+persisted commands are server-authoritative.
 
 ## Develop
 

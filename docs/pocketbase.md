@@ -22,10 +22,12 @@ client data.
 
 `src/hooks.server.ts` creates a fresh identity client for every SvelteKit
 request, loads its auth cookie, and stores the raw authenticated record only in
-server locals. `src/lib/server/pocketbase.ts` owns URL resolution, the sanitized
-session projection, and a separate request-scoped service client used only by
-the run repository. `src/routes/+layout.server.ts` exposes only the sanitized
-projection.
+server locals. The same request-scoped client handles Discord OAuth and public
+email/password sign-in or registration. Passwords pass directly from the form
+request to PocketBase and never enter route data, query strings, or logs.
+`src/lib/server/pocketbase.ts` owns URL resolution, the sanitized session
+projection, and a separate request-scoped service client used only by the run
+repository. `src/routes/+layout.server.ts` exposes only the sanitized projection.
 
 Rules:
 
@@ -81,7 +83,7 @@ in a deployed environment.
 
 ## Public Alpha
 
-The production application is [https://five-fold-game.vercel.app](https://five-fold-game.vercel.app). Vercel stores the canonical PocketBase URL and sensitive service token in the production environment; local `.env` mirrors those values with mode `0600`. Discord OAuth redirects to `https://five-fold-game.vercel.app/auth/callback`.
+The production application is [https://five-fold-game.vercel.app](https://five-fold-game.vercel.app). Vercel stores the canonical PocketBase URL and sensitive service token in the production environment; local `.env` mirrors those values with mode `0600`. Discord OAuth redirects to `https://five-fold-game.vercel.app/auth/callback`. PocketBase's existing `users` auth collection accepts public email/password registration with an eight-character minimum and does not require email verification; no schema migration or deployment-specific callback is needed for that flow.
 
 A disposable impersonated-user probe verified live run creation, resume, PocketBase persistence, and cascade cleanup without enabling test mode.
 

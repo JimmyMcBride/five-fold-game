@@ -1,5 +1,5 @@
 ---
-updated: '2026-08-08T00:36:05Z'
+updated: '2026-08-08T01:32:33Z'
 ---
 
 # Workflows
@@ -73,6 +73,8 @@ Command-boundary changes also cover malformed envelopes in the colocated
 and target field types, before repository orchestration is invoked.
 Browser coverage includes keyboard roster/rank selection, active-member handoff,
 ally commands, refresh/resume, member inspection, and mobile containment.
+
+Authentication changes require focused server-route tests for successful and failed PocketBase calls, safe error redirects, registration validation, and automatic post-registration sign-in. Playwright keeps signed-out form semantics and the authenticated game flow covered.
 
 ## Closeout
 
