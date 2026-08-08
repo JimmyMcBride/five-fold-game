@@ -6,6 +6,25 @@ import { createRng } from '../src/lib/game/rng';
 import { CONTENT_VERSION, createInitialState } from '../src/lib/game/state';
 import type { RunProjection } from '../src/lib/game/projection';
 
+test('password auth rejects cross-site form submissions before route handling', async ({
+	request
+}) => {
+	for (const path of ['/auth/password', '/auth/register']) {
+		const response = await request.post(path, {
+			headers: { Origin: 'https://attacker.example' },
+			form: {
+				name: 'Attacker account',
+				email: 'attacker@example.com',
+				password: 'attacker-password',
+				passwordConfirm: 'attacker-password'
+			}
+		});
+
+		expect(response.status()).toBe(403);
+		expect(await response.text()).toContain('Cross-site POST form submissions are forbidden');
+	}
+});
+
 test('public visitor signs in, creates a character, moves, and resumes the run', async ({
 	page
 }) => {
