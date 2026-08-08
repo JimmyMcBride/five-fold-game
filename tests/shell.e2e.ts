@@ -14,6 +14,19 @@ test('public visitor signs in, creates a character, moves, and resumes the run',
 	await expect(page.getByRole('heading', { name: 'Enter St. Bozma’s Tomb' })).toBeVisible();
 	const discord = page.getByRole('link', { name: 'Continue with Discord' });
 	await expect(discord).toHaveAttribute('href', /\/auth\/discord$/);
+	const signIn = page.locator('form[action="/auth/password"]');
+	await expect(page.getByRole('heading', { name: 'Return to the tomb' })).toBeVisible();
+	await expect(signIn.getByLabel('Email')).toHaveAttribute('autocomplete', 'email');
+	await expect(signIn.getByLabel('Password')).toHaveAttribute('autocomplete', 'current-password');
+	const registration = page.locator('form[action="/auth/register"]');
+	await expect(page.getByRole('heading', { name: 'Open a ledger' })).toBeVisible();
+	await expect(registration.getByLabel('Display name')).toHaveAttribute('autocomplete', 'name');
+	await expect(registration.getByLabel('Email')).toHaveAttribute('autocomplete', 'email');
+	const newPasswords = registration.locator('input[type="password"]');
+	await expect(newPasswords).toHaveCount(2);
+	await expect(newPasswords.first()).toHaveAttribute('minlength', '8');
+	await expect(newPasswords.first()).toHaveAttribute('autocomplete', 'new-password');
+	await expect(newPasswords.last()).toHaveAttribute('autocomplete', 'new-password');
 	await expect(page.getByText('No invitation required.')).toBeVisible();
 
 	await page.goto('/auth/test');

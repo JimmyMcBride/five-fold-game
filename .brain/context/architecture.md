@@ -1,5 +1,5 @@
 ---
-updated: '2026-08-06T21:17:09Z'
+updated: '2026-08-08T01:32:33Z'
 ---
 
 # Architecture
@@ -37,7 +37,9 @@ types and server-provided legal commands, but it does not own combat rules,
 browser state, or side effects.
 
 `src/hooks.server.ts` creates one PocketBase identity client per
-request. `src/lib/server/pocketbase.ts` owns URL resolution, sanitized sessions,
+request. `src/routes/auth/` uses that client for Discord OAuth and public
+email/password sign-in or registration; raw credentials stay inside server POST
+requests. `src/lib/server/pocketbase.ts` owns URL resolution, sanitized sessions,
 and the request-scoped service-token client for locked run collections.
 `src/lib/server/run-repository.ts` owns active runs, atomic command commits,
 idempotency, resume, and history.

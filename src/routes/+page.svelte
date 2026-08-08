@@ -239,12 +239,65 @@
 			{#if data.authError}
 				<p class="notice danger" role="alert">{data.authError}</p>
 			{/if}
+			<div class="auth-options">
+				<section class="auth-panel" aria-labelledby="sign-in-title">
+					<p class="label">Existing account</p>
+					<h2 id="sign-in-title">Return to the tomb</h2>
+					<form class="auth-form" method="POST" action="/auth/password">
+						<label>
+							<span>Email</span>
+							<input name="email" type="email" autocomplete="email" required />
+						</label>
+						<label>
+							<span>Password</span>
+							<input name="password" type="password" autocomplete="current-password" required />
+						</label>
+						<button class="primary-action" type="submit">Sign in</button>
+					</form>
+				</section>
+				<section class="auth-panel" aria-labelledby="register-title">
+					<p class="label">New account</p>
+					<h2 id="register-title">Open a ledger</h2>
+					<form class="auth-form" method="POST" action="/auth/register">
+						<label>
+							<span>Display name</span>
+							<input name="name" maxlength="80" autocomplete="name" required />
+						</label>
+						<label>
+							<span>Email</span>
+							<input name="email" type="email" autocomplete="email" required />
+						</label>
+						<label>
+							<span>Password <small>8 characters minimum</small></span>
+							<input
+								name="password"
+								type="password"
+								minlength="8"
+								autocomplete="new-password"
+								required
+							/>
+						</label>
+						<label>
+							<span>Confirm password</span>
+							<input
+								name="passwordConfirm"
+								type="password"
+								minlength="8"
+								autocomplete="new-password"
+								required
+							/>
+						</label>
+						<button class="primary-action" type="submit">Create account</button>
+					</form>
+				</section>
+			</div>
+			<p class="auth-divider"><span>or use Discord</span></p>
 			<a class="discord-action" href={resolve('/auth/discord')}>
 				<span aria-hidden="true">⌁</span>
 				Continue with Discord
 			</a>
 			<p class="access-note">
-				No invitation required. Discord creates your alpha account; only run history persists after
+				No invitation required. Create an account or use Discord; only run history persists after
 				death.
 			</p>
 		</section>
@@ -276,7 +329,7 @@
 			<p class="eyebrow">Authenticated // {data.session.displayName}</p>
 			<h1 id="storage-title">The tomb ledger is sealed</h1>
 			<p class="lede">
-				Discord sign-in works. The approved PocketBase run migration has not been applied to this
+				Sign-in works. The approved PocketBase run migration has not been applied to this
 				environment yet.
 			</p>
 			<p class="notice">

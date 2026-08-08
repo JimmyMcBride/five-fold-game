@@ -31,10 +31,10 @@ SvelteKit server code owns identity, authorization, version checks, and persiste
 ### PocketBase persistence
 
 Create request-scoped PocketBase clients: one user-authenticated identity client
-for Discord OAuth and one service-token client for locked run collections. Raw
-auth records, the service token, privileged collection access, and unsanitized
-records stay server-side. Browser route data receives only explicit session and
-game projections.
+for Discord OAuth and email/password authentication, and one service-token
+client for locked run collections. Raw auth records, passwords, the service
+token, privileged collection access, and unsanitized records stay server-side.
+Browser route data receives only explicit session and game projections.
 
 `src/lib/server/run-repository.ts` owns active-run creation, expected-version
 commands, idempotency, resume, and history. Production commits use PocketBase’s
