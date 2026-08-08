@@ -29,6 +29,10 @@ and continue through their original resolver without conversion.
   `sections/10-classes-perks-and-advancement.md`.
 - Healing Potions use an Action and heal as Patch Up:
   `sections/13-items-gold-and-gear.md`.
+- Start-of-turn effects such as Tongues of Fire and Sacred Light motes resolve
+  when that specific member becomes Active again. End-of-next-turn effects such
+  as Shooting Star remain tied to that member's turn end:
+  `sections/10-classes-perks-and-advancement.md` and `sections/11-perks.md`.
 - Hellhornet, Scorched Raider, Zeboul, and Barnabe statistics remain unchanged:
   `sections/15-bestiary.md` and `sections/16-st-bozmas-tomb.md`.
 

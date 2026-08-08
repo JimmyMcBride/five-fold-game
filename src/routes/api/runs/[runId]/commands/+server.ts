@@ -95,7 +95,10 @@ function isGameCommand(value: unknown): value is GameCommand {
 		case 'buy':
 			return typeof value.stockId === 'string';
 		case 'use-item':
-			return value.itemId === 'healing-potion' || value.itemId === 'blue-hive-wax';
+			return (
+				(value.itemId === 'healing-potion' || value.itemId === 'blue-hive-wax') &&
+				(value.targetId === undefined || typeof value.targetId === 'string')
+			);
 		case 'equip':
 			return typeof value.weaponId === 'string';
 		case 'replace-relic':

@@ -4,6 +4,7 @@ import type { GameEvent } from './events';
 import {
 	getLegalCommands as getSoloLegalCommands,
 	resolvePlayerTurnEnd,
+	resolvePlayerTurnStart,
 	resolveCommand as resolveSoloCommand
 } from './engine';
 import type {
@@ -603,6 +604,26 @@ function activateCurrentEntry(state: PartyGameState, rng: RandomSource, events: 
 		if (entry.kind === 'member') {
 			const member = state.party.find((candidate) => candidate.memberId === entry.actorId);
 			if (member && !member.down) {
+				const previousEncounter = state.encounter;
+				const previousExperience = new Map(
+					state.party.map((candidate) => [candidate.memberId, candidate.experience])
+				);
+				const solo = asSoloState(state, member);
+				const soloEvents: GameEvent[] = [];
+				resolvePlayerTurnStart(solo, rng, soloEvents);
+				mergeSoloState(state, member.memberId, solo, previousEncounter);
+				events.push(
+					...soloEvents.map((eventEntry) => ({
+						...eventEntry,
+						turn: state.turn,
+						actorId: member.memberId,
+						text: `${member.name}: ${eventEntry.text}`
+					}))
+				);
+				if (previousEncounter && !state.encounter && state.status === 'active') {
+					awardPartyExperience(state, previousExperience, events);
+				}
+				if (!state.encounter || state.status !== 'active') return;
 				state.activeMemberId = member.memberId;
 				events.push(
 					event(state, 'turn-ended', `${member.name} is Active.`, 'command', member.memberId)

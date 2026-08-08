@@ -1160,39 +1160,7 @@ function enemyPhase(
 	}
 
 	if (state.status !== 'active' || !state.encounter) return;
-
-	const firstTarget = targetableEnemies(state)[0];
-	if (firstTarget && state.player.effects.tonguesBurn > 0) {
-		const damage = state.player.effects.tonguesBurn;
-		state.player.effects.tonguesBurn = 0;
-		firstTarget.hp = Math.max(0, firstTarget.hp - damage);
-		events.push(
-			event(
-				state,
-				'feature-resolved',
-				`Tongues of Fire burns ${firstTarget.name} again for ${damage} damage.`,
-				'success'
-			)
-		);
-		if (firstTarget.hp === 0) defeatEnemy(state, firstTarget, rng, events);
-	}
-
-	if (state.status !== 'active' || !state.encounter) return;
-	const moteTarget = targetableEnemies(state)[0];
-	if (moteTarget && state.player.effects.sacredMotes > 0) {
-		const damage = Math.max(1, Math.floor(modifier(state.player.stats.soul) / 2));
-		state.player.effects.sacredMotes -= 1;
-		moteTarget.hp = Math.max(0, moteTarget.hp - damage);
-		events.push(
-			event(
-				state,
-				'feature-resolved',
-				`A Sacred Light mote strikes ${moteTarget.name} for ${damage} Holy damage.`,
-				'success'
-			)
-		);
-		if (moteTarget.hp === 0) defeatEnemy(state, moteTarget, rng, events);
-	}
+	if (resolveEnemies) resolvePlayerTurnStart(state, rng, events);
 
 	if (state.status !== 'active' || !state.encounter) return;
 
@@ -1243,6 +1211,47 @@ function enemyPhase(
 	) {
 		state.player.temporaryHp = 0;
 		state.player.effects.aegisExpiresAfterTurn = null;
+	}
+}
+
+export function resolvePlayerTurnStart(
+	state: GameState,
+	rng: RandomSource,
+	events: GameEvent[]
+): void {
+	if (state.status !== 'active' || !state.encounter) return;
+
+	const firstTarget = targetableEnemies(state)[0];
+	if (firstTarget && state.player.effects.tonguesBurn > 0) {
+		const damage = state.player.effects.tonguesBurn;
+		state.player.effects.tonguesBurn = 0;
+		firstTarget.hp = Math.max(0, firstTarget.hp - damage);
+		events.push(
+			event(
+				state,
+				'feature-resolved',
+				`Tongues of Fire burns ${firstTarget.name} again for ${damage} damage.`,
+				'success'
+			)
+		);
+		if (firstTarget.hp === 0) defeatEnemy(state, firstTarget, rng, events);
+	}
+
+	if (state.status !== 'active' || !state.encounter) return;
+	const moteTarget = targetableEnemies(state)[0];
+	if (moteTarget && state.player.effects.sacredMotes > 0) {
+		const damage = Math.max(1, Math.floor(modifier(state.player.stats.soul) / 2));
+		state.player.effects.sacredMotes -= 1;
+		moteTarget.hp = Math.max(0, moteTarget.hp - damage);
+		events.push(
+			event(
+				state,
+				'feature-resolved',
+				`A Sacred Light mote strikes ${moteTarget.name} for ${damage} Holy damage.`,
+				'success'
+			)
+		);
+		if (moteTarget.hp === 0) defeatEnemy(state, moteTarget, rng, events);
 	}
 }
 

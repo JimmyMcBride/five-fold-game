@@ -2,7 +2,7 @@
 status: done
 title: Selectable prebuilt parties for solo-controlled dungeon runs
 type: spec
-updated_at: "2026-08-07T07:49:37Z"
+updated_at: '2026-08-07T07:49:37Z'
 ---
 
 ## Spec

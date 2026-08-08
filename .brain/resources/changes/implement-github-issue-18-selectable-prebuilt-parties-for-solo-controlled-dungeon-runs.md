@@ -1,6 +1,7 @@
 ---
-updated: "2026-08-07T07:49:27Z"
+updated: '2026-08-08T00:36:05Z'
 ---
+
 # Issue #18 Party Runs
 
 ## Outcome
@@ -16,13 +17,18 @@ Rules classifications and deferred behavior live in
 `docs/adaptations/party-runs.md`. No PocketBase schema mutation or deployment was
 required.
 
+PR review follow-up hardened malformed v5 template decoding, aligned
+`use-item.targetId` request validation with the command schema, and moved
+start-of-turn effects to the owning party member's activation without changing
+legacy solo timing.
+
 ## Verification
 
 - Canonical 17-section rule corpus: 217152 bytes; SHA-256
   `0a2b64f9ad9e83b3916152e6e4928ec6824c594e63987371ec970ee7ea77cadd`.
 - `bun run lint`
 - `bun run check`
-- `bun run test:unit` — 110 tests.
+- `bun run test:unit` — 118 tests.
 - `bun run build`
 - `bun run test:e2e` — six desktop/mobile/keyboard flows.
 

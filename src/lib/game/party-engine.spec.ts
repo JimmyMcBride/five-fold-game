@@ -106,6 +106,17 @@ describe('party templates and initialization', () => {
 		delete (malformed.encounter as Partial<NonNullable<typeof malformed.encounter>>).memberTurns;
 		expect(() => decodeGameState(malformed)).toThrow(/initiative state/i);
 	});
+
+	it.each([undefined, null, 42, {}])(
+		'fails closed when a party template ID is malformed (%j)',
+		(templateId) => {
+			const malformed = structuredClone(initial(['warrior-corren']));
+			(malformed.party[0] as unknown as Record<string, unknown>).templateId = templateId;
+			expect(() => decodeGameState(malformed)).toThrow(
+				'Invalid v5 snapshot: party state is missing.'
+			);
+		}
+	);
 });
 
 describe('party combat ownership and recovery', () => {
@@ -287,5 +298,44 @@ describe('party combat ownership and recovery', () => {
 		const nextVersant = result.state.party.find((member) => member.memberId === versant.memberId)!;
 		expect(nextVersant.momentum).toBe(expected);
 		expect(result.state.activeMemberId).toBe(warrior.memberId);
+	});
+
+	it('defers start-of-turn effects until that member becomes active again', () => {
+		const state = enterCombat(
+			initial(['versant-mara', 'warrior-corren'], 'start-turn-effects')
+		).state;
+		const versant = state.party.find((member) => member.className === 'Versant')!;
+		const warrior = state.party.find((member) => member.className === 'Warrior')!;
+		const enemy = state.encounter!.enemies[0];
+		state.activeMemberId = versant.memberId;
+		state.encounter!.initiative = [
+			{ actorId: versant.memberId, kind: 'member', initiative: 20 },
+			{ actorId: warrior.memberId, kind: 'member', initiative: 10 }
+		];
+		state.encounter!.initiativeIndex = 0;
+		versant.effects.tonguesBurn = 7;
+		const startingHp = enemy.hp;
+
+		const afterVersant = resolve(state, { type: 'end-turn', actorId: versant.memberId });
+		expect(afterVersant.state.encounter?.enemies[0].hp).toBe(startingHp);
+		expect(
+			afterVersant.state.party.find((member) => member.memberId === versant.memberId)?.effects
+				.tonguesBurn
+		).toBe(7);
+		expect(afterVersant.state.activeMemberId).toBe(warrior.memberId);
+
+		const afterWarrior = resolve(afterVersant.state, {
+			type: 'end-turn',
+			actorId: warrior.memberId
+		});
+		expect(afterWarrior.state.encounter?.enemies[0].hp).toBe(startingHp - 7);
+		expect(
+			afterWarrior.state.party.find((member) => member.memberId === versant.memberId)?.effects
+				.tonguesBurn
+		).toBe(0);
+		expect(afterWarrior.state.activeMemberId).toBe(versant.memberId);
+		expect(afterWarrior.events.some((entry) => entry.text.includes('Tongues of Fire burns'))).toBe(
+			true
+		);
 	});
 });

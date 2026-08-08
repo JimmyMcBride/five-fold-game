@@ -1,6 +1,7 @@
 ---
-updated: "2026-08-07T07:49:27Z"
+updated: '2026-08-08T00:37:09Z'
 ---
+
 # Current State
 
 Updated 2026-07-29.
@@ -131,5 +132,9 @@ compositions. V1-v4 snapshots still dispatch through their unchanged singular
 resolver. The Obsidian + Bone shell adds a keyboard-accessible roster, persistent
 party/initiative rail, member inspection, ally actions, responsive mobile layout,
 and party-aware history. The pinned 217152-byte rules corpus, lint,
-Svelte/TypeScript checks, 110 unit/integration tests, production build, and six
+Svelte/TypeScript checks, 118 unit/integration tests, production build, and six
 Playwright flows pass. No PocketBase schema change or deployment is included.
+PR #26 review follow-up makes malformed v5 template IDs fail closed, validates
+optional item targets at the request boundary, and resolves Tongues of Fire and
+Sacred Light at the owning member's actual start-of-turn activation while
+preserving solo timing and end-of-next-turn Shooting Star behavior.

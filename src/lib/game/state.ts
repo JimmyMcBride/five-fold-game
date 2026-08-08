@@ -58,16 +58,23 @@ export function decodeGameState(value: unknown): GameState | PartyGameState {
 	if (candidate.contentVersion === PARTY_CONTENT_VERSION) {
 		const party = value as Partial<PartyGameState>;
 		const members = Array.isArray(party.party) ? party.party : [];
-		const memberIds = new Set(members.map((member) => member.memberId));
-		const memberClasses = new Set(members.map((member) => member.className));
+		const membersAreObjects = members.every(
+			(member) => member !== null && typeof member === 'object'
+		);
+		const memberIds = new Set(membersAreObjects ? members.map((member) => member.memberId) : []);
+		const memberClasses = new Set(
+			membersAreObjects ? members.map((member) => member.className) : []
+		);
 		if (
 			members.length < 1 ||
 			members.length > 3 ||
+			!membersAreObjects ||
 			memberIds.size !== members.length ||
 			memberClasses.size !== members.length ||
 			!members.every(
 				(member) =>
 					typeof member.memberId === 'string' &&
+					typeof member.templateId === 'string' &&
 					member.templateId in PARTY_TEMPLATES &&
 					PARTY_TEMPLATES[member.templateId as PartyTemplateId].className === member.className &&
 					typeof member.down === 'boolean' &&
