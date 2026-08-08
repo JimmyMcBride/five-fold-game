@@ -64,6 +64,16 @@ at bottom-pinned and manually reviewed scroll positions. Browser coverage also
 keeps the complete enemy selector visible without its own scrollbar on desktop
 and mobile.
 
+V5 party changes must retain all v1-v4 fixtures; validate every one-, two-, and
+three-class combination; cover actor ownership, individual initiative/AP, ally
+targets, formation, Down/healing/wipe behavior, shared resources, authored
+party-size composition, snapshot/idempotency/stale safety, and party summaries.
+Command-boundary changes also cover malformed envelopes in the colocated
+`src/routes/api/runs/[runId]/commands/server.spec.ts`, especially optional actor
+and target field types, before repository orchestration is invoked.
+Browser coverage includes keyboard roster/rank selection, active-member handoff,
+ally commands, refresh/resume, member inspection, and mobile containment.
+
 Authentication changes require focused server-route tests for successful and failed PocketBase calls, safe error redirects, registration validation, and automatic post-registration sign-in. Playwright keeps signed-out form semantics and the authenticated game flow covered.
 
 ## Closeout

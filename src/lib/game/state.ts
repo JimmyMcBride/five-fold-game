@@ -1,11 +1,19 @@
 import { getClassKit } from './content/classes';
 import { generateDungeon } from './content/dungeon';
 import { createExpeditionState, itemDefinition } from './content/expedition';
+import {
+	PARTY_TEMPLATES,
+	type PartySelection,
+	type PartyTemplateId,
+	validatePartySelections
+} from './content/party';
 import { createRng, type RandomSource } from './rng';
 import type {
 	ClassName,
 	CombatTurnState,
 	GameState,
+	PartyGameState,
+	PartyMemberState,
 	PlayerEffects,
 	PlayerState,
 	RunSummary,
@@ -18,11 +26,13 @@ export const LEGACY_CONTENT_VERSION = 'st-bozma-mvp-v1';
 export const V2_CONTENT_VERSION = 'st-bozma-v0.8.5-v2';
 export const V3_CONTENT_VERSION = 'st-bozma-expedition-v3';
 export const CONTENT_VERSION = 'st-bozma-expedition-v4';
+export const PARTY_CONTENT_VERSION = 'st-bozma-party-v5';
 export const SUPPORTED_CONTENT_VERSIONS = [
 	LEGACY_CONTENT_VERSION,
 	V2_CONTENT_VERSION,
 	V3_CONTENT_VERSION,
-	CONTENT_VERSION
+	CONTENT_VERSION,
+	PARTY_CONTENT_VERSION
 ] as const;
 
 export interface NewRunInput {
@@ -33,11 +43,86 @@ export interface NewRunInput {
 	contentVersion?: string;
 }
 
+export interface NewPartyRunInput {
+	runId: string;
+	seed: string;
+	party: PartySelection[];
+	contentVersion?: typeof PARTY_CONTENT_VERSION;
+}
+
 export class UnsupportedContentVersionError extends Error {}
 
-export function decodeGameState(value: unknown): GameState {
+export function decodeGameState(value: unknown): GameState | PartyGameState {
 	if (!value || typeof value !== 'object') throw new Error('Invalid game-state snapshot.');
 	const candidate = value as Partial<GameState>;
+	if (candidate.contentVersion === PARTY_CONTENT_VERSION) {
+		const party = value as Partial<PartyGameState>;
+		const members = Array.isArray(party.party) ? party.party : [];
+		const membersAreObjects = members.every(
+			(member) => member !== null && typeof member === 'object'
+		);
+		const memberIds = new Set(membersAreObjects ? members.map((member) => member.memberId) : []);
+		const memberClasses = new Set(
+			membersAreObjects ? members.map((member) => member.className) : []
+		);
+		if (
+			members.length < 1 ||
+			members.length > 3 ||
+			!membersAreObjects ||
+			memberIds.size !== members.length ||
+			memberClasses.size !== members.length ||
+			!members.every(
+				(member) =>
+					typeof member.memberId === 'string' &&
+					typeof member.templateId === 'string' &&
+					member.templateId in PARTY_TEMPLATES &&
+					PARTY_TEMPLATES[member.templateId as PartyTemplateId].className === member.className &&
+					typeof member.down === 'boolean' &&
+					Number.isInteger(member.downCount) &&
+					(member.rank === 'near' || member.rank === 'far') &&
+					Number.isFinite(member.hp) &&
+					Number.isFinite(member.maxHp) &&
+					Array.isArray(member.healthRolls)
+			) ||
+			!party.expedition ||
+			!memberIds.has(party.leaderMemberId ?? '') ||
+			(party.activeMemberId !== null &&
+				party.activeMemberId !== undefined &&
+				!memberIds.has(party.activeMemberId)) ||
+			typeof party.gold !== 'number'
+		) {
+			throw new Error('Invalid v5 snapshot: party state is missing.');
+		}
+		if (party.encounter) {
+			const enemyIds = new Set(party.encounter.enemies?.map((enemy) => enemy.instanceId) ?? []);
+			const initiativeActors = new Set(
+				party.encounter.initiative?.map((entry) => entry.actorId) ?? []
+			);
+			if (
+				!Array.isArray(party.encounter.initiative) ||
+				party.encounter.initiative.length === 0 ||
+				!Number.isInteger(party.encounter.initiativeIndex) ||
+				(party.encounter.initiativeIndex ?? -1) < 0 ||
+				(party.encounter.initiativeIndex ?? 0) >= party.encounter.initiative.length ||
+				initiativeActors.size !== party.encounter.initiative.length ||
+				!party.encounter.initiative.every((entry) =>
+					entry.kind === 'member' ? memberIds.has(entry.actorId) : enemyIds.has(entry.actorId)
+				) ||
+				!party.encounter.memberTurns ||
+				!members.every((member) => {
+					const turn = party.encounter?.memberTurns?.[member.memberId];
+					return (
+						turn !== undefined &&
+						Number.isInteger(turn.actionPoints) &&
+						Array.isArray(turn.usedActionIds)
+					);
+				})
+			) {
+				throw new Error('Invalid v5 snapshot: initiative state is missing.');
+			}
+		}
+		return value as PartyGameState;
+	}
 	if (candidate.contentVersion === LEGACY_CONTENT_VERSION) return value as GameState;
 	if (
 		candidate.contentVersion !== V2_CONTENT_VERSION &&
@@ -91,12 +176,17 @@ function usesV2Rules(contentVersion: string): boolean {
 	return (
 		contentVersion === V2_CONTENT_VERSION ||
 		contentVersion === V3_CONTENT_VERSION ||
-		contentVersion === CONTENT_VERSION
+		contentVersion === CONTENT_VERSION ||
+		contentVersion === PARTY_CONTENT_VERSION
 	);
 }
 
 function usesExpedition(contentVersion: string): boolean {
-	return contentVersion === V3_CONTENT_VERSION || contentVersion === CONTENT_VERSION;
+	return (
+		contentVersion === V3_CONTENT_VERSION ||
+		contentVersion === CONTENT_VERSION ||
+		contentVersion === PARTY_CONTENT_VERSION
+	);
 }
 
 function modifier(value: number): number {
@@ -121,7 +211,7 @@ function initialEffects(): PlayerEffects {
 	};
 }
 
-function createPlayer(
+export function createPlayerState(
 	name: string,
 	className: ClassName,
 	contentVersion: string,
@@ -168,9 +258,17 @@ export function createInitialState(input?: Partial<NewRunInput>): GameState {
 	const seed = input?.seed?.trim() || 'bozma-bootstrap';
 	const className = input?.className ?? 'Versant';
 	const contentVersion = input?.contentVersion ?? CONTENT_VERSION;
+	if (contentVersion === PARTY_CONTENT_VERSION) {
+		throw new Error('Party v5 runs require validated party selections.');
+	}
 	const graph = generateDungeon(seed, usesExpedition(contentVersion));
 	const rng = createRng(`${seed}:commands`);
-	const player = createPlayer(input?.name?.trim() || 'Mara Vey', className, contentVersion, rng);
+	const player = createPlayerState(
+		input?.name?.trim() || 'Mara Vey',
+		className,
+		contentVersion,
+		rng
+	);
 	const expedition = usesExpedition(contentVersion)
 		? createExpeditionState(seed, graph)
 		: undefined;
@@ -204,6 +302,60 @@ export function createInitialState(input?: Partial<NewRunInput>): GameState {
 	};
 }
 
+export function createPartyInitialState(input: NewPartyRunInput): PartyGameState {
+	const selections = validatePartySelections(input.party);
+	const seed = input.seed.trim() || 'bozma-party';
+	const graph = generateDungeon(seed, true);
+	const rng = createRng(`${seed}:commands`);
+	const expedition = createExpeditionState(seed, graph);
+	const party = selections.map((selection): PartyMemberState => {
+		const template = PARTY_TEMPLATES[selection.templateId as PartyTemplateId];
+		const player = createPlayerState(template.name, template.className, PARTY_CONTENT_VERSION, rng);
+		const equipped = player.weapons.find((weapon) => weapon.rank === selection.startingRank);
+		if (equipped) player.equippedWeaponId = equipped.id;
+		player.rank = selection.startingRank;
+		const memberRecord = structuredClone(player) as unknown as Record<string, unknown>;
+		delete memberRecord.gold;
+		const member = memberRecord as unknown as Omit<PlayerState, 'gold'>;
+		return {
+			...member,
+			memberId: `member:${selection.templateId}`,
+			templateId: selection.templateId,
+			down: false,
+			downCount: 0,
+			reserveWeaponId:
+				player.weapons.find((weapon) => weapon.id !== player.equippedWeaponId)?.id ?? null
+		};
+	});
+
+	return {
+		runId: input.runId,
+		seed,
+		contentVersion: PARTY_CONTENT_VERSION,
+		rngCursor: rng.snapshot?.().cursor ?? 0,
+		turn: 0,
+		status: 'active',
+		phase: 'exploration',
+		roomId: graph.entryId,
+		graph,
+		visitedRooms: [graph.entryId],
+		resolvedRooms: [],
+		defeatedEncounters: [],
+		party,
+		activeMemberId: null,
+		leaderMemberId: party[0].memberId,
+		gold: 0,
+		encounter: null,
+		patchUpAvailable: false,
+		flags: {
+			manessaTurned: false,
+			bozmanSensor: false,
+			tombMercyAttempted: false
+		},
+		expedition
+	};
+}
+
 export function statModifier(state: GameState, stat: StatName): number {
 	return modifier(state.player.stats[stat]);
 }
@@ -234,4 +386,39 @@ export function summarizeRun(state: GameState): RunSummary | null {
 		summary.notableTreasure = [...state.expedition.inventory.notableTreasure];
 	}
 	return summary;
+}
+
+export function summarizePartyRun(state: PartyGameState): RunSummary | null {
+	if (state.status === 'active') return null;
+	const first = state.party[0];
+	return {
+		runId: state.runId,
+		characterName: state.party.map((member) => member.name).join(', '),
+		className: first.className,
+		seed: state.seed,
+		outcome: state.status,
+		roomsVisited: state.visitedRooms.length,
+		enemiesDefeated: state.defeatedEncounters.length,
+		levelReached: Math.max(...state.party.map((member) => member.level)),
+		notableLoot: [...state.expedition.inventory.notableTreasure],
+		goldFound: state.expedition.goldFound,
+		goldSpent: state.expedition.goldSpent,
+		relicsCarried: state.expedition.inventory.relicIds.map((id) => itemDefinition(id).name),
+		notableTreasure: [...state.expedition.inventory.notableTreasure],
+		partySize: state.party.length,
+		partyMembers: state.party.map((member) => ({
+			memberId: member.memberId,
+			templateId: member.templateId,
+			name: member.name,
+			className: member.className,
+			level: member.level,
+			downCount: member.downCount
+		})),
+		defeatCause:
+			state.status === 'death'
+				? 'full-party-down'
+				: state.status === 'objective-failure'
+					? 'decode'
+					: undefined
+	};
 }

@@ -63,6 +63,7 @@ export function commandsForSelectedTarget(
 	selectedEnemyId: string | null
 ): LegalCommand[] {
 	return commands.filter((candidate) => {
+		if (candidate.targetKind === 'ally' || candidate.targetKind === 'self') return true;
 		const targetId = commandTargetId(candidate.command);
 		return targetId === null || targetId === selectedEnemyId;
 	});

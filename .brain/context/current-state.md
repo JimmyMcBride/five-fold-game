@@ -120,6 +120,25 @@ or production deployment is included.
 
 Issue #20 implementation is complete on `codex/issue-20-canonical-hidden`. In current v4 runs, successful Sneak now preserves Hidden across rounds, blocks hostile single-target attacks without consuming defense RNG, narrates hostiles unable to find a target, and reveals the Scout after targeting an enemy. Weapon attacks retain Hidden advantage, Surprise Attack retains its pre-existing-advantage damage, Ambusher and Barnabe Decode remain unchanged, and v1-v3 resolver behavior stays pinned. Lint, Svelte/TypeScript checks, 97 unit/reference tests, production build, and five Playwright flows pass.
 
+## Issue #18 Selectable Prebuilt Parties
+
+Implementation is complete on
+`codex/selectable-prebuilt-parties-for-solo-controlled-dungeon-runs`. New runs
+use `st-bozma-party-v5` with one to three unique fixed prebuilts, server-validated
+starting ranks, stable member/template IDs, individual initiative/AP/effects/
+progression, explicit actor and ally targets, Down/full-party defeat, one
+exploration leader, shared expedition resources, and authored party-size enemy
+compositions. V1-v4 snapshots still dispatch through their unchanged singular
+resolver. The Obsidian + Bone shell adds a keyboard-accessible roster, persistent
+party/initiative rail, member inspection, ally actions, responsive mobile layout,
+and party-aware history. The pinned 217152-byte rules corpus, lint,
+Svelte/TypeScript checks, 118 unit/integration tests, production build, and six
+Playwright flows pass. No PocketBase schema change or deployment is included.
+PR #26 review follow-up makes malformed v5 template IDs fail closed, validates
+optional item targets at the request boundary, and resolves Tongues of Fire and
+Sacred Light at the owning member's actual start-of-turn activation while
+preserving solo timing and end-of-next-turn Shooting Star behavior.
+
 ## Email/password authentication
 
 Implementation is complete on `codex/email-password-auth`. Public visitors can sign in with email/password, create an account with a required display name and eight-character password, or continue through Discord. Registration signs the new account in immediately; email verification remains disabled. Credentials stay inside server POST requests and the request-scoped PocketBase client, while browser route data retains only the sanitized session. No PocketBase schema migration or deployment-specific callback is required. Lint, Svelte/TypeScript checks, 107 unit tests, production build, and all five Playwright flows pass.

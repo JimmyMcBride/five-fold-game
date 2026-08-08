@@ -10,6 +10,15 @@ const newRun = {
 	seed: 'repository'
 };
 
+const newPartyRun = {
+	runId: 'partyrun0000001',
+	seed: 'repository-party',
+	party: [
+		{ templateId: 'warrior-corren', startingRank: 'near' as const },
+		{ templateId: 'priest-odelle', startingRank: 'far' as const }
+	]
+};
+
 function selectReferenceCommand(projection: {
 	phase: string;
 	player: { hp: number; maxHp: number };
@@ -54,6 +63,45 @@ function selectReferenceCommand(projection: {
 }
 
 describe('run repository command contract', () => {
+	it('persists and resumes a party snapshot with actor-aware legal commands', async () => {
+		const repository = createMemoryRunRepository();
+		const created = await repository.create('party-owner', newPartyRun);
+		const resumed = await repository.getActive('party-owner');
+		expect(created.party?.map((member) => member.templateId)).toEqual([
+			'warrior-corren',
+			'priest-odelle'
+		]);
+		expect(created.leaderMemberId).toBe(created.party?.[0].memberId);
+		expect(resumed).toEqual({ ...created, events: [] });
+		expect(
+			created.commands.every((entry) => entry.command.actorId === created.leaderMemberId)
+		).toBe(true);
+	});
+
+	it('keeps party commands idempotent and stale-safe', async () => {
+		const repository = createMemoryRunRepository();
+		const created = await repository.create('party-owner', newPartyRun);
+		const inspect = created.commands.find((entry) => entry.command.type === 'inspect')?.command;
+		if (!inspect) throw new Error('Expected party inspect.');
+		const envelope = {
+			runId: newPartyRun.runId,
+			commandId: 'party-command-0001',
+			expectedVersion: 0,
+			command: inspect
+		};
+		const accepted = await repository.command('party-owner', envelope);
+		const duplicate = await repository.command('party-owner', envelope);
+		const stale = await repository.command('party-owner', {
+			...envelope,
+			commandId: 'party-command-0002'
+		});
+		expect(accepted.kind).toBe('accepted');
+		expect(duplicate.kind).toBe('duplicate');
+		expect(duplicate.projection).toEqual(accepted.projection);
+		expect(stale.kind).toBe('stale');
+		expect(stale.projection.version).toBe(1);
+	});
+
 	it('creates one active run and rejects a second active slot', async () => {
 		const repository = createMemoryRunRepository();
 		const created = await repository.create('owner-1', newRun);

@@ -38,3 +38,6 @@ Every implemented class feature, enemy ability, item, and room event must cite i
 
 - [`st-bozma-mvp.md`](./st-bozma-mvp.md) — solo rules, fixed class templates,
   bounded progression, St. Bozma content, finale, and transactional persistence.
+- [`party-runs.md`](./party-runs.md) — v5 fixed prebuilt parties, individual
+  initiative, ally targets, Down, shared expedition resources, and authored
+  party-size encounters.

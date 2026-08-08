@@ -22,6 +22,13 @@ temporary health, momentum, selected class features, solo enemy behavior,
 progression, events, loot, Barnabe’s Decode clock, and terminal outcomes.
 Explicit omissions remain in `docs/adaptations/st-bozma-mvp.md`.
 
+`st-bozma-party-v5` adds a separate party-native state and resolver. It stores a
+bounded ordered party, stable member/template IDs, per-member combat turns,
+interleaved initiative, one exploration leader, and shared expedition resources.
+The legacy v1-v4 engine and singular snapshot shapes remain unchanged. The
+repository dispatches by stable `contentVersion`; projections retain an active
+`player` view for the command panel and add the sanitized complete party rail.
+
 ### SvelteKit application
 
 Routes render sanitized state and submit commands. UI reads domain events as narration rather than rebuilding rule outcomes in components.

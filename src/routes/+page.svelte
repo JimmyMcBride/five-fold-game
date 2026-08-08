@@ -4,7 +4,12 @@
 	import type { GameCommand, LegalCommand } from '$lib/game/commands';
 	import type { GameEvent } from '$lib/game/events';
 	import { CLASS_KITS } from '$lib/game/content/classes';
-	import { CLASS_NAMES, STAT_NAMES, type ClassName, type RunSummary } from '$lib/game/model';
+	import {
+		PARTY_TEMPLATE_LIST,
+		type PartySelection,
+		type PartyTemplateId
+	} from '$lib/game/content/party';
+	import { STAT_NAMES, type RunSummary } from '$lib/game/model';
 	import type { RunProjection } from '$lib/game/projection';
 	import {
 		commandsForSelectedTarget,
@@ -19,13 +24,14 @@
 	// svelte-ignore state_referenced_locally
 	let history = $state<RunSummary[]>((data.history as RunSummary[]) ?? []);
 	let log = $state<GameEvent[]>([]);
-	let selectedClass = $state<ClassName>('Warrior');
-	// svelte-ignore state_referenced_locally
-	let characterName = $state(data.session?.displayName ?? '');
+	let selectedParty = $state<PartySelection[]>([
+		{ templateId: 'warrior-corren', startingRank: 'near' }
+	]);
 	let requestedSeed = $state('');
 	let pending = $state(false);
 	let errorMessage = $state<string | null>(null);
 	let selectedEnemyId = $state<string | null>(null);
+	let inspectedMemberId = $state<string | null>(null);
 	let unreadLogEntries = $state(false);
 	let logElement = $state<HTMLOListElement | undefined>();
 	let selectionRunId: string | null = null;
@@ -34,6 +40,27 @@
 	let logUpdatePending = false;
 	let runResetPending = false;
 	let wasPinnedBeforeLogUpdate = true;
+
+	function selectedTemplate(templateId: string) {
+		return selectedParty.find((selection) => selection.templateId === templateId);
+	}
+
+	function toggleTemplate(templateId: PartyTemplateId, defaultRank: 'near' | 'far') {
+		const existing = selectedTemplate(templateId);
+		if (existing) {
+			selectedParty = selectedParty.filter((selection) => selection.templateId !== templateId);
+			return;
+		}
+		if (selectedParty.length < 3) {
+			selectedParty = [...selectedParty, { templateId, startingRank: defaultRank }];
+		}
+	}
+
+	function setStartingRank(templateId: string, startingRank: 'near' | 'far') {
+		selectedParty = selectedParty.map((selection) =>
+			selection.templateId === templateId ? { ...selection, startingRank } : selection
+		);
+	}
 
 	const playerHealth = $derived(
 		healthProgress(projection?.player.hp ?? 0, projection?.player.maxHp ?? 0)
@@ -73,6 +100,7 @@
 
 		if (runId !== selectionRunId) {
 			selectedEnemyId = null;
+			inspectedMemberId = null;
 			selectionRunId = runId;
 		}
 
@@ -144,8 +172,7 @@
 				method: 'POST',
 				headers: { 'content-type': 'application/json' },
 				body: JSON.stringify({
-					name: characterName,
-					className: selectedClass,
+					party: selectedParty,
 					seed: requestedSeed
 				})
 			});
@@ -221,6 +248,14 @@
 			.split('-')
 			.map((part) => statLabel(part))
 			.join(' ');
+	}
+
+	function initiativeActorLabel(actorId: string) {
+		return (
+			projection?.party?.find((member) => member.memberId === actorId)?.name ??
+			projection?.enemies.find((enemy) => enemy.id === actorId)?.name ??
+			actorId
+		);
 	}
 </script>
 
@@ -345,7 +380,7 @@
 		<header class="creation-header">
 			<div>
 				<p class="eyebrow">Authenticated // {data.session.displayName}</p>
-				<h1>Name the next delver</h1>
+				<h1>Choose who enters</h1>
 			</div>
 			<form method="POST" action="/auth/logout">
 				<button class="ghost-action" type="submit">Log out</button>
@@ -356,12 +391,8 @@
 			<section class="identity-band" aria-labelledby="identity-title">
 				<div>
 					<p class="label">Run identity</p>
-					<h2 id="identity-title">Who enters?</h2>
+					<h2 id="identity-title">One hand. Up to three lives.</h2>
 				</div>
-				<label>
-					<span>Character name</span>
-					<input bind:value={characterName} maxlength="40" required autocomplete="off" />
-				</label>
 				<label>
 					<span>Seed <small>optional</small></span>
 					<input
@@ -375,16 +406,27 @@
 			</section>
 
 			<fieldset class="class-fieldset">
-				<legend>Choose one fixed class template</legend>
+				<legend>Choose one to three fixed adventurers</legend>
 				<div class="class-grid">
-					{#each CLASS_NAMES as className (className)}
-						{@const kit = CLASS_KITS[className]}
-						<label class:chosen={selectedClass === className} class="class-choice">
-							<input type="radio" name="class" value={className} bind:group={selectedClass} />
+					{#each PARTY_TEMPLATE_LIST as template (template.templateId)}
+						{@const kit = CLASS_KITS[template.className]}
+						{@const selection = selectedTemplate(template.templateId)}
+						<div class:chosen={Boolean(selection)} class="class-choice">
+							<button
+								type="button"
+								class="roster-toggle"
+								aria-pressed={Boolean(selection)}
+								disabled={!selection && selectedParty.length >= 3}
+								onclick={() => toggleTemplate(template.templateId, template.defaultRank)}
+							>
+								{selection ? 'Selected' : selectedParty.length >= 3 ? 'Party full' : 'Select'}
+							</button>
 							<span class="class-heading">
-								<strong>{className}</strong>
+								<strong>{template.name}</strong>
+								<small>{template.className} // {template.role}</small>
 								<small>{statLabel(kit.primaryStat)} // {kit.originPerk}</small>
 							</span>
+							<span class="class-kit">{template.identity}</span>
 							<span class="class-stats">
 								{#each STAT_NAMES as stat (stat)}
 									<span>{statLabel(stat).slice(0, 1)} {kit.stats[stat]}</span>
@@ -393,16 +435,40 @@
 							<span class="class-kit"
 								>{kit.armor} // {kit.weapons.map((weapon) => weapon.name).join(' + ')}</span
 							>
-						</label>
+							<span class="class-kit">Signature // {template.signatureFeature}</span>
+							{#if selection}
+								<label class="rank-choice">
+									<span>Starting rank</span>
+									<select
+										value={selection.startingRank}
+										onchange={(event) =>
+											setStartingRank(
+												template.templateId,
+												event.currentTarget.value as 'near' | 'far'
+											)}
+									>
+										<option value="near">Near</option>
+										<option value="far">Far</option>
+									</select>
+								</label>
+							{/if}
+						</div>
 					{/each}
 				</div>
 			</fieldset>
+			<p class="lineup-note" aria-live="polite">
+				{selectedParty.length === 0
+					? 'Select at least one adventurer.'
+					: selectedParty.length < 3
+						? `${selectedParty.length} selected // Challenge lineup`
+						: '3 selected // Full expedition'}
+			</p>
 
 			{#if errorMessage}
 				<p class="notice danger" role="alert">{errorMessage}</p>
 			{/if}
-			<button class="primary-action" type="submit" disabled={pending}>
-				{pending ? 'Opening the ledger…' : 'Begin run'}
+			<button class="primary-action" type="submit" disabled={pending || selectedParty.length === 0}>
+				{pending ? 'Opening the ledger…' : 'Enter the Tomb'}
 			</button>
 		</form>
 
@@ -416,7 +482,11 @@
 					{#each history as record (record.runId)}
 						<li>
 							<strong>{record.characterName}</strong>
-							<span>{record.className} // Level {record.levelReached}</span>
+							<span>
+								{record.partySize
+									? `Party of ${record.partySize} // ${record.partyMembers?.map((member) => member.className).join(' + ')}`
+									: `${record.className} // Level ${record.levelReached}`}
+							</span>
 							<span class:success={record.outcome === 'victory'}>{record.outcome}</span>
 							<span>Seed {record.seed}</span>
 							{#if record.goldFound !== undefined}
@@ -467,6 +537,58 @@
 		{/if}
 
 		<section class="game-grid" aria-label="Dungeon run">
+			{#if projection.party}
+				<section class="party-rail" aria-label="Party and initiative">
+					{#each projection.party as member (member.memberId)}
+						<article class:active={member.active} class:down={member.down}>
+							<button
+								type="button"
+								class="party-member-inspect"
+								aria-pressed={inspectedMemberId === member.memberId}
+								onclick={() => (inspectedMemberId = member.memberId)}
+							>
+								<span>
+									<strong>{member.name}</strong>
+									<span>{member.className} // {member.rank}</span>
+								</span>
+								<span
+									>{member.active
+										? 'Active'
+										: member.down
+											? 'Down'
+											: member.leader
+												? 'Leader'
+												: 'Ready'}</span
+								>
+								<span
+									>{member.hp}/{member.maxHp} HP // {member.recoveryDice} RD // {member.momentum} M</span
+								>
+							</button>
+						</article>
+					{/each}
+					{#if inspectedMemberId}
+						{@const inspected = projection.party.find(
+							(member) => member.memberId === inspectedMemberId
+						)}
+						{#if inspected}
+							<p class="party-inspection" role="status">
+								Inspecting {inspected.name} // {inspected.down ? 'Down' : 'Conscious'} // Level {inspected.level}
+								// {inspected.equippedWeapon} // {inspected.defense} defense
+							</p>
+						{/if}
+					{/if}
+					{#if projection.initiative?.length}
+						<p class="initiative-line">
+							Turn order // {projection.initiative
+								.map(
+									(entry) =>
+										`${entry.active ? 'Active: ' : ''}${initiativeActorLabel(entry.actorId)}`
+								)
+								.join(' → ')}
+						</p>
+					{/if}
+				</section>
+			{/if}
 			<aside class="character-sheet" aria-labelledby="character-title">
 				<div class="section-heading">
 					<p class="eyebrow">Delver</p>

@@ -1,10 +1,20 @@
 import { expect, test } from '@playwright/test';
 import type { LegalCommand } from '../src/lib/game/commands';
-import { getLegalCommands, resolveCommand } from '../src/lib/game/engine';
+import { getPartyLegalCommands, resolvePartyCommand } from '../src/lib/game/party-engine';
 import type { GameEvent } from '../src/lib/game/events';
 import { createRng } from '../src/lib/game/rng';
-import { CONTENT_VERSION, createInitialState } from '../src/lib/game/state';
+import { createPartyInitialState } from '../src/lib/game/state';
 import type { RunProjection } from '../src/lib/game/projection';
+
+async function chooseSoloPrebuilt(page: import('@playwright/test').Page, name: string) {
+	const selected = page.locator('.class-choice.chosen');
+	if (await selected.count()) await selected.getByRole('button', { name: 'Selected' }).click();
+	await page
+		.locator('.class-choice')
+		.filter({ hasText: name })
+		.getByRole('button', { name: 'Select' })
+		.click();
+}
 
 test('password auth rejects cross-site form submissions before route handling', async ({
 	request
@@ -49,16 +59,15 @@ test('public visitor signs in, creates a character, moves, and resumes the run',
 	await expect(page.getByText('No invitation required.')).toBeVisible();
 
 	await page.goto('/auth/test');
-	await expect(page.getByRole('heading', { name: 'Name the next delver' })).toBeVisible();
+	await expect(page.getByRole('heading', { name: 'Choose who enters' })).toBeVisible();
 	await expect(page.locator('.class-fieldset legend')).toHaveCSS('padding-top', '24px');
-	for (const className of ['Warrior', 'Scout', 'Priest', 'Magi', 'Versant']) {
-		await expect(page.getByText(className, { exact: true })).toBeVisible();
+	for (const name of ['Corren Vey', 'Nyra Pell', 'Sister Odelle', 'Sevrin Ash', 'Mara Vey']) {
+		await expect(page.getByText(name, { exact: true })).toBeVisible();
 	}
 
-	await page.getByLabel('Character name').fill('Aster Vale');
 	await page.getByLabel('Seed optional').fill('playwright-seed');
-	await page.getByText('Magi', { exact: true }).click();
-	await page.getByRole('button', { name: 'Begin run' }).click();
+	await chooseSoloPrebuilt(page, 'Sevrin Ash');
+	await page.getByRole('button', { name: 'Enter the Tomb' }).click();
 
 	await page.setViewportSize({ width: 1920, height: 1080 });
 	await expect(page.getByRole('heading', { name: 'Monastery Grounds' })).toBeVisible();
@@ -103,6 +112,70 @@ test('public visitor signs in, creates a character, moves, and resumes the run',
 	await expect(page.locator('#room-title')).toHaveText(roomHeading ?? '');
 });
 
+test('three-member roster, ranks, ally targets, initiative, resume, and mobile rail stay reachable', async ({
+	context,
+	page
+}) => {
+	await context.addCookies([
+		{
+			name: 'ff_test_user',
+			value: 'party-ui-test-user',
+			domain: '127.0.0.1',
+			path: '/'
+		}
+	]);
+	await page.goto('/');
+	const priestCard = page.locator('.class-choice').filter({ hasText: 'Sister Odelle' });
+	const magiCard = page.locator('.class-choice').filter({ hasText: 'Sevrin Ash' });
+	await priestCard.getByRole('button', { name: 'Select' }).focus();
+	await page.keyboard.press('Space');
+	await magiCard.getByRole('button', { name: 'Select' }).click();
+	await priestCard.getByLabel('Starting rank').selectOption('far');
+	await magiCard.getByLabel('Starting rank').selectOption('far');
+	await expect(page.getByText('3 selected // Full expedition')).toBeVisible();
+	await page.getByLabel('Seed optional').fill('three-member-browser');
+	await page.getByRole('button', { name: 'Enter the Tomb' }).click();
+
+	const rail = page.locator('.party-rail');
+	await expect(rail.locator('article')).toHaveCount(3);
+	for (const name of ['Corren Vey', 'Sister Odelle', 'Sevrin Ash']) {
+		await expect(rail.getByText(name, { exact: true })).toBeVisible();
+	}
+	await page.getByRole('button', { name: /Climb toward the shrine/ }).click();
+	const firstActive = await rail.locator('article.active strong').textContent();
+	await page.getByRole('button', { name: /^End turn/ }).click();
+	await expect
+		.poll(() => rail.locator('article.active strong').textContent())
+		.not.toBe(firstActive);
+
+	for (let turn = 0; turn < 5; turn += 1) {
+		const active = await rail.locator('article.active strong').textContent();
+		if (active === 'Sister Odelle') break;
+		await page.getByRole('button', { name: /^End turn/ }).click();
+		await expect.poll(() => rail.locator('article.active strong').textContent()).not.toBe(active);
+	}
+	await expect(rail.locator('article.active strong')).toHaveText('Sister Odelle');
+	await expect(
+		page.getByRole('button', { name: /^Shield of Faith — Sister Odelle/ })
+	).toBeVisible();
+	await expect(page.getByRole('button', { name: /^Shield of Faith — Sevrin Ash/ })).toBeVisible();
+
+	const activeBeforeReload = await rail.locator('article.active strong').textContent();
+	await page.reload();
+	await expect(page.locator('.party-rail article.active strong')).toHaveText(
+		activeBeforeReload ?? ''
+	);
+	await page.setViewportSize({ width: 390, height: 844 });
+	await expect(page.locator('.party-rail article')).toHaveCount(3);
+	await expect
+		.poll(() =>
+			page.evaluate(
+				() => document.documentElement.scrollWidth <= document.documentElement.clientWidth
+			)
+		)
+		.toBe(true);
+});
+
 test('fixed enemy targeting and bottom-pinned Tomb Record preserve player intent', async ({
 	context,
 	page
@@ -116,10 +189,9 @@ test('fixed enemy targeting and bottom-pinned Tomb Record preserve player intent
 		}
 	]);
 	await page.goto('/');
-	await page.getByLabel('Character name').fill('Rook Ash');
 	await page.getByLabel('Seed optional').fill('targeting-scroll-seed');
-	await page.getByText('Magi', { exact: true }).click();
-	await page.getByRole('button', { name: 'Begin run' }).click();
+	await chooseSoloPrebuilt(page, 'Sevrin Ash');
+	await page.getByRole('button', { name: 'Enter the Tomb' }).click();
 	await page.getByRole('button', { name: /Climb toward the shrine/ }).click();
 
 	let projection: Record<string, unknown> | null = null;
@@ -397,14 +469,14 @@ test('combat reserve-weapon swap costs 1 AP and updates available actions', asyn
 		}
 	]);
 	await page.goto('/');
-	await page.getByLabel('Character name').fill('Nettle Vane');
 	await page.getByLabel('Seed optional').fill('combat-equip-seed');
-	await page.getByText('Scout', { exact: true }).click();
-	await page.getByRole('button', { name: 'Begin run' }).click();
+	await chooseSoloPrebuilt(page, 'Nyra Pell');
+	await page.getByRole('button', { name: 'Enter the Tomb' }).click();
 	await page.getByRole('button', { name: /Climb toward the shrine/ }).click();
 
 	await expect(page.getByText('2 / 2 AP')).toBeVisible();
-	await expect(page.getByText('near', { exact: true }).first()).toBeVisible();
+	const rankValue = page.locator('.stats.resources div').filter({ hasText: 'Rank' }).locator('dd');
+	const rankBeforeSwap = await rankValue.textContent();
 	const equip = page.getByRole('button', { name: /^Equip Dagger/ });
 	await expect(equip).toContainText('Spend 1 AP');
 	await equip.click();
@@ -413,10 +485,15 @@ test('combat reserve-weapon swap costs 1 AP and updates available actions', asyn
 	await expect(page.getByText('Used: Equip')).toBeVisible();
 	await expect(page.getByText('Dagger', { exact: true }).first()).toBeVisible();
 	await expect(page.getByRole('button', { name: /^Equip Shortbow/ })).toHaveCount(0);
-	await expect(page.getByRole('button', { name: /^Attack/ })).toContainText(
-		'Dagger // Reflex // Near'
-	);
-	await expect(page.getByText('near', { exact: true }).first()).toBeVisible();
+	await expect(rankValue).toHaveText(rankBeforeSwap ?? 'far');
+	if (rankBeforeSwap === 'near') {
+		await expect(page.getByRole('button', { name: /^Attack/ })).toContainText(
+			'Dagger // Reflex // Near'
+		);
+	} else {
+		await expect(page.getByRole('button', { name: /^Attack/ })).toHaveCount(0);
+		await expect(page.getByRole('button', { name: /Shift to Near/ })).toBeVisible();
+	}
 });
 
 test('noisy ambush victory grants 5 XP through the persisted browser flow', async ({
@@ -431,18 +508,16 @@ test('noisy ambush victory grants 5 XP through the persisted browser flow', asyn
 			path: '/'
 		}
 	]);
-	const seed = 'v3-Scout-22';
+	const seed = 'v5-scout-5';
 	await page.goto('/');
-	await page.getByLabel('Character name').fill('Vesper Flint');
 	await page.getByLabel('Seed optional').fill(seed);
-	await page.getByText('Scout', { exact: true }).click();
-	await page.getByRole('button', { name: 'Begin run' }).click();
+	await chooseSoloPrebuilt(page, 'Nyra Pell');
+	await page.getByRole('button', { name: 'Enter the Tomb' }).click();
 
-	let local = createInitialState({
-		name: 'Vesper Flint',
-		className: 'Scout',
+	let local = createPartyInitialState({
+		runId: 'ambushflow00001',
 		seed,
-		contentVersion: CONTENT_VERSION
+		party: [{ templateId: 'scout-nyra', startingRank: 'far' }]
 	});
 	const rng = createRng(`${seed}:commands`, local.rngCursor);
 	const riskyRoomId = local.graph.middleTemplateIds[2];
@@ -452,7 +527,7 @@ test('noisy ambush victory grants 5 XP through the persisted browser flow', asyn
 	let ambushVictoryEvents: GameEvent[] = [];
 
 	for (let step = 0; step < 300 && local.status === 'active'; step += 1) {
-		const legal = getLegalCommands(local);
+		const legal = getPartyLegalCommands(local);
 		let selected: LegalCommand | undefined;
 		if (local.phase === 'exploration') {
 			selected =
@@ -464,7 +539,7 @@ test('noisy ambush victory grants 5 XP through the persisted browser flow', asyn
 				legal.find((candidate) => candidate.command.type === 'search') ??
 				legal.find(
 					(candidate) =>
-						candidate.command.type === 'patch-up' && local.player.hp < local.player.maxHp
+						candidate.command.type === 'patch-up' && local.party[0].hp < local.party[0].maxHp
 				) ??
 				legal.find((candidate) => {
 					const command = candidate.command;
@@ -513,10 +588,10 @@ test('noisy ambush victory grants 5 XP through the persisted browser flow', asyn
 		expect(response.kind).toBe('accepted');
 		version = Number(response.projection.version);
 
-		const resolution = resolveCommand(local, selected.command, rng);
+		const resolution = resolvePartyCommand(local, selected.command, rng);
 		if (resolution.events.some((event) => event.kind === 'ambush-triggered')) {
 			ambushTriggered = true;
-			xpBeforeAmbush = local.player.experience;
+			xpBeforeAmbush = local.party[0].experience;
 		}
 		local = resolution.state;
 		if (ambushTriggered && resolution.events.some((event) => event.kind === 'experience-gained')) {
@@ -526,15 +601,18 @@ test('noisy ambush victory grants 5 XP through the persisted browser flow', asyn
 	}
 
 	expect(ambushTriggered).toBe(true);
-	expect(local.player.experience).toBe(xpBeforeAmbush + 5);
+	expect(local.party[0].experience).toBe(xpBeforeAmbush + 5);
 	expect(ambushVictoryEvents).toEqual(
 		expect.arrayContaining([
-			expect.objectContaining({ kind: 'experience-gained', text: 'Victory grants 5 XP.' })
+			expect.objectContaining({
+				kind: 'experience-gained',
+				text: 'Victory grants 5 XP to each of 1 adventurers.'
+			})
 		])
 	);
 	await page.reload();
 	await expect(
-		page.getByText(String(local.player.experience), { exact: true }).first()
+		page.getByText(String(local.party[0].experience), { exact: true }).first()
 	).toBeVisible();
 });
 
@@ -551,10 +629,8 @@ test('expedition merchant, inventory, warnings, item use, and relic replacement 
 		}
 	]);
 	await page.goto('/');
-	await page.getByLabel('Character name').fill('Sable Reed');
 	await page.getByLabel('Seed optional').fill('expedition-ui-seed');
-	await page.getByText('Warrior', { exact: true }).click();
-	await page.getByRole('button', { name: 'Begin run' }).click();
+	await page.getByRole('button', { name: 'Enter the Tomb' }).click();
 
 	const weaponInventory = page.locator('.inventory-weapons');
 	await expect(

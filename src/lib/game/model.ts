@@ -176,6 +176,27 @@ export interface PlayerState {
 	effects: PlayerEffects;
 }
 
+export interface PartyMemberState extends Omit<PlayerState, 'gold'> {
+	memberId: string;
+	templateId: string;
+	down: boolean;
+	downCount: number;
+	reserveWeaponId: string | null;
+}
+
+export interface InitiativeEntry {
+	actorId: string;
+	kind: 'member' | 'enemy';
+	initiative: number;
+}
+
+export interface PartyEncounterState extends Omit<EncounterState, 'turn'> {
+	initiative: InitiativeEntry[];
+	initiativeIndex: number;
+	round: number;
+	memberTurns: Record<string, CombatTurnState>;
+}
+
 export interface RunFlags {
 	manessaTurned: boolean;
 	bozmanSensor: boolean;
@@ -280,6 +301,35 @@ export interface GameState {
 	expedition?: ExpeditionState;
 }
 
+export interface PartyGameState {
+	runId: string;
+	seed: string;
+	contentVersion: string;
+	rngCursor: number;
+	turn: number;
+	status: RunStatus;
+	phase: GamePhase;
+	roomId: string;
+	graph: RoomGraph;
+	visitedRooms: string[];
+	resolvedRooms: string[];
+	defeatedEncounters: string[];
+	party: PartyMemberState[];
+	activeMemberId: string | null;
+	leaderMemberId: string;
+	gold: number;
+	encounter: PartyEncounterState | null;
+	patchUpAvailable: boolean;
+	flags: RunFlags;
+	expedition: ExpeditionState;
+}
+
+export type AnyGameState = GameState | PartyGameState;
+
+export function isPartyGameState(state: AnyGameState): state is PartyGameState {
+	return 'party' in state;
+}
+
 export interface RunSummary {
 	runId: string;
 	characterName: string;
@@ -294,4 +344,14 @@ export interface RunSummary {
 	goldSpent?: number;
 	relicsCarried?: string[];
 	notableTreasure?: string[];
+	partySize?: number;
+	partyMembers?: {
+		memberId: string;
+		templateId: string;
+		name: string;
+		className: ClassName;
+		level: number;
+		downCount: number;
+	}[];
+	defeatCause?: string;
 }

@@ -19,6 +19,7 @@ const COMMAND_TYPES = new Set([
 	'use-item',
 	'equip',
 	'replace-relic',
+	'set-leader',
 	'end-turn'
 ]);
 
@@ -66,6 +67,7 @@ function isGameCommand(value: unknown): value is GameCommand {
 	if (!isObject(value) || typeof value.type !== 'string' || !COMMAND_TYPES.has(value.type)) {
 		return false;
 	}
+	if (value.actorId !== undefined && typeof value.actorId !== 'string') return false;
 	switch (value.type) {
 		case 'move':
 			return typeof value.exitId === 'string';
@@ -93,7 +95,10 @@ function isGameCommand(value: unknown): value is GameCommand {
 		case 'buy':
 			return typeof value.stockId === 'string';
 		case 'use-item':
-			return value.itemId === 'healing-potion' || value.itemId === 'blue-hive-wax';
+			return (
+				(value.itemId === 'healing-potion' || value.itemId === 'blue-hive-wax') &&
+				(value.targetId === undefined || typeof value.targetId === 'string')
+			);
 		case 'equip':
 			return typeof value.weaponId === 'string';
 		case 'replace-relic':
@@ -102,6 +107,8 @@ function isGameCommand(value: unknown): value is GameCommand {
 				typeof value.outgoingRelicId === 'string' &&
 				(value.stockId === undefined || typeof value.stockId === 'string')
 			);
+		case 'set-leader':
+			return typeof value.memberId === 'string';
 		case 'shift-rank':
 			return (
 				value.economy === undefined || value.economy === 'action' || value.economy === 'maneuver'

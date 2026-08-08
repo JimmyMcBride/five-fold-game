@@ -1,5 +1,5 @@
 import { json, type RequestHandler } from '@sveltejs/kit';
-import { CLASS_NAMES, type ClassName } from '$lib/game/model';
+import { validatePartySelections } from '$lib/game/content/party';
 import { getRunRepository, RunConflictError } from '$lib/server/run-repository';
 import { PocketBaseServiceConfigurationError } from '$lib/server/pocketbase';
 
@@ -24,17 +24,15 @@ export const POST: RequestHandler = async ({ locals, request }) => {
 	const body = await request.json().catch(() => null);
 	if (!isObject(body)) return json({ message: 'Invalid run request.' }, { status: 400 });
 
-	const name = typeof body.name === 'string' ? body.name.trim() : '';
-	const className = body.className;
 	const requestedSeed = typeof body.seed === 'string' ? body.seed.trim() : '';
-	if (name.length < 1 || name.length > 40) {
+	let party;
+	try {
+		party = validatePartySelections(body.party);
+	} catch (error) {
 		return json(
-			{ message: 'Character name must be between 1 and 40 characters.' },
+			{ message: error instanceof Error ? error.message : 'Invalid party selection.' },
 			{ status: 400 }
 		);
-	}
-	if (!CLASS_NAMES.includes(className as ClassName)) {
-		return json({ message: 'Choose one of the five class templates.' }, { status: 400 });
 	}
 	if (requestedSeed && !/^[a-zA-Z0-9_-]{1,64}$/.test(requestedSeed)) {
 		return json(
@@ -47,8 +45,7 @@ export const POST: RequestHandler = async ({ locals, request }) => {
 		const repository = getRunRepository();
 		const projection = await repository.create(locals.session.id, {
 			runId: createPocketBaseId(),
-			name,
-			className: className as ClassName,
+			party,
 			seed: requestedSeed || createSeed()
 		});
 		return json({ projection }, { status: 201 });
