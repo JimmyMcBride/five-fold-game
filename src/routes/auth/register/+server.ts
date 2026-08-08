@@ -1,7 +1,10 @@
 import { redirect, type RequestHandler } from '@sveltejs/kit';
+import { ClientResponseError } from 'pocketbase';
 
 const MIN_PASSWORD_LENGTH = 8;
-const REGISTRATION_ERROR = 'Account could not be created. Check your details and try again.';
+const MAX_DISPLAY_NAME_LENGTH = 80;
+const REGISTRATION_ERROR =
+	'Account could not be created. Try signing in if you have used this email before.';
 
 export const POST: RequestHandler = async ({ locals, request }) => {
 	const form = await request.formData();
@@ -11,6 +14,9 @@ export const POST: RequestHandler = async ({ locals, request }) => {
 	const passwordConfirm = textField(form, 'passwordConfirm');
 
 	if (!name) redirectWithError('Enter a display name.');
+	if (name.length > MAX_DISPLAY_NAME_LENGTH) {
+		redirectWithError(`Display name must be ${MAX_DISPLAY_NAME_LENGTH} characters or fewer.`);
+	}
 	if (!email) redirectWithError('Enter your email address.');
 	if (password.length < MIN_PASSWORD_LENGTH) {
 		redirectWithError(`Password must be at least ${MIN_PASSWORD_LENGTH} characters.`);
@@ -20,8 +26,8 @@ export const POST: RequestHandler = async ({ locals, request }) => {
 	const users = locals.pb.collection('users');
 	try {
 		await users.create({ name, email, password, passwordConfirm });
-	} catch {
-		redirectWithError(REGISTRATION_ERROR);
+	} catch (error) {
+		redirectWithError(registrationErrorMessage(error));
 	}
 
 	try {
@@ -40,4 +46,20 @@ function textField(form: FormData, name: string): string {
 
 function redirectWithError(message: string): never {
 	redirect(303, `/?authError=${encodeURIComponent(message)}`);
+}
+
+function registrationErrorMessage(error: unknown): string {
+	if (!(error instanceof ClientResponseError) || error.status !== 400) return REGISTRATION_ERROR;
+
+	const fields = error.response?.data;
+	if (!fields || typeof fields !== 'object') return REGISTRATION_ERROR;
+	if ('email' in fields) {
+		return 'Check your email address. It may be invalid or already in use; try signing in if you have used it before.';
+	}
+	if ('password' in fields || 'passwordConfirm' in fields) {
+		return `Check your password. It must be at least ${MIN_PASSWORD_LENGTH} characters and both entries must match.`;
+	}
+	if ('name' in fields) return 'Check your display name and try again.';
+
+	return REGISTRATION_ERROR;
 }

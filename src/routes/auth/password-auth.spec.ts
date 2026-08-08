@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { RequestHandler } from '@sveltejs/kit';
+import { ClientResponseError } from 'pocketbase';
 import { POST as signIn } from './password/+server';
 import { POST as register } from './register/+server';
 
@@ -63,6 +64,16 @@ describe('password authentication routes', () => {
 			'Enter a display name.'
 		],
 		[
+			'long display name',
+			{
+				name: 'A'.repeat(81),
+				email: 'aster@example.com',
+				password: 'eightfold',
+				passwordConfirm: 'eightfold'
+			},
+			'Display name must be 80 characters or fewer.'
+		],
+		[
 			'missing email',
 			{ name: 'Aster', email: '', password: 'eightfold', passwordConfirm: 'eightfold' },
 			'Enter your email address.'
@@ -105,10 +116,46 @@ describe('password authentication routes', () => {
 
 		expect(users.authWithPassword).not.toHaveBeenCalled();
 		expect(outcome.location).toContain(
-			encodeURIComponent('Account could not be created. Check your details and try again.')
+			encodeURIComponent(
+				'Account could not be created. Try signing in if you have used this email before.'
+			)
 		);
 		expect(outcome.location).not.toContain('private@example.com');
 		expect(outcome.location).not.toContain('secret-pass');
+	});
+
+	it.each([
+		[
+			'email',
+			'Check your email address. It may be invalid or already in use; try signing in if you have used it before.'
+		],
+		[
+			'password',
+			'Check your password. It must be at least 8 characters and both entries must match.'
+		],
+		['name', 'Check your display name and try again.']
+	])('maps PocketBase %s validation to safe guidance', async (field, message) => {
+		const users = authCollection();
+		users.create.mockRejectedValueOnce(
+			new ClientResponseError({
+				status: 400,
+				response: {
+					data: { [field]: { code: 'validation_failed', message: 'raw PocketBase detail' } }
+				}
+			})
+		);
+		const outcome = await captureRedirect(
+			submit(register, users, {
+				name: 'Aster',
+				email: 'private@example.com',
+				password: 'secret-pass',
+				passwordConfirm: 'secret-pass'
+			})
+		);
+
+		expect(outcome.location).toContain(encodeURIComponent(message));
+		expect(outcome.location).not.toContain('private@example.com');
+		expect(outcome.location).not.toContain('raw PocketBase detail');
 	});
 
 	it('explains when account creation succeeds but automatic sign-in fails', async () => {
