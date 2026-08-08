@@ -1,5 +1,5 @@
 ---
-updated: '2026-08-06T21:17:09Z'
+updated: '2026-08-08T01:32:33Z'
 ---
 
 # Workflows
@@ -63,6 +63,8 @@ legality without altering v3 replay, and cover chronological Tomb Record behavio
 at bottom-pinned and manually reviewed scroll positions. Browser coverage also
 keeps the complete enemy selector visible without its own scrollbar on desktop
 and mobile.
+
+Authentication changes require focused server-route tests for successful and failed PocketBase calls, safe error redirects, registration validation, and automatic post-registration sign-in. Playwright keeps signed-out form semantics and the authenticated game flow covered.
 
 ## Closeout
 

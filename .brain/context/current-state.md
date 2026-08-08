@@ -1,5 +1,5 @@
 ---
-updated: '2026-08-06T21:46:10Z'
+updated: '2026-08-08T01:32:33Z'
 ---
 
 # Current State
@@ -119,3 +119,7 @@ or production deployment is included.
 ## Issue #20 Canonical Hidden
 
 Issue #20 implementation is complete on `codex/issue-20-canonical-hidden`. In current v4 runs, successful Sneak now preserves Hidden across rounds, blocks hostile single-target attacks without consuming defense RNG, narrates hostiles unable to find a target, and reveals the Scout after targeting an enemy. Weapon attacks retain Hidden advantage, Surprise Attack retains its pre-existing-advantage damage, Ambusher and Barnabe Decode remain unchanged, and v1-v3 resolver behavior stays pinned. Lint, Svelte/TypeScript checks, 97 unit/reference tests, production build, and five Playwright flows pass.
+
+## Email/password authentication
+
+Implementation is complete on `codex/email-password-auth`. Public visitors can sign in with email/password, create an account with a required display name and eight-character password, or continue through Discord. Registration signs the new account in immediately; email verification remains disabled. Credentials stay inside server POST requests and the request-scoped PocketBase client, while browser route data retains only the sanitized session. No PocketBase schema migration or deployment-specific callback is required. Lint, Svelte/TypeScript checks, 107 unit tests, production build, and all five Playwright flows pass.
